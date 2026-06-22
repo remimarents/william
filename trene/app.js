@@ -43,6 +43,10 @@ const els = {
   title: document.querySelector("#todayWorkoutTitle"),
   exerciseList: document.querySelector("#exerciseList"),
   completeButton: document.querySelector("#completeButton"),
+  coachFeedback: document.querySelector("#coachFeedback"),
+  feedbackTitle: document.querySelector("#feedbackTitle"),
+  feedbackStats: document.querySelector("#feedbackStats"),
+  feedbackBody: document.querySelector("#feedbackBody"),
   effortInput: document.querySelector("#effortInput"),
   photoCheckin: document.querySelector("#photoCheckin"),
   photoHint: document.querySelector("#photoHint"),
@@ -56,6 +60,7 @@ const els = {
   motivationCard: document.querySelector("#motivationCard"),
   historyList: document.querySelector("#historyList"),
   milestones: document.querySelector("#milestones"),
+  factList: document.querySelector("#factList"),
   exportButton: document.querySelector("#exportButton"),
   logoutButton: document.querySelector("#logoutButton"),
   settingsButton: document.querySelector("#settingsButton"),
@@ -82,6 +87,41 @@ const els = {
 };
 
 let state = loadState();
+
+const factDeck = [
+  {
+    title: "Hypertrofi forklart enkelt",
+    text: "Muskler vokser når kroppen får et tydelig signal om at den må bli sterkere, og deretter får nok mat og søvn til å bygge seg opp igjen. For deg er nøkkelen jevn progresjon, god teknikk og nok energi."
+  },
+  {
+    title: "Failure er et verktøy, ikke et mål",
+    text: "Du må ikke trene til failure for å få effekt. Spesielt når du bygger vane og teknikk er det smart å stoppe med 1-3 gode reps igjen. Failure kan brukes sjelden på siste sett, men ikke hvis formen ryker."
+  },
+  {
+    title: "Form slår ego",
+    text: "Riktig utførelse gir bedre treningssignal og lavere skaderisiko. Hvis du må velge mellom pen teknikk og flere stygge reps, velg teknikk. En stygg rep teller ikke mer fordi den var tung."
+  },
+  {
+    title: "Pauser er lov",
+    text: "Alle reps må ikke tas som ett langt sett. Målet kan være 2 x 18, 3 x 12 eller små pauser. Pauser gjør at flere reps blir teknisk gode, og gode reps bygger best."
+  },
+  {
+    title: "Tunge dager har en jobb",
+    text: "Hvis kroppen kjennes tung: gjør minimumsøkten, del opp settene, eller ta 70 prosent av målet med perfekt form. Det holder streaken og trener hjernen på å møte opp."
+  },
+  {
+    title: "Hvile er del av programmet",
+    text: "En 13-åring kan være aktiv hver dag, men samme muskler trenger også rolige dager. Derfor kan WB Trene ha lette dager. Smerte i ledd eller skarp smerte betyr stopp, ikke press."
+  },
+  {
+    title: "Mat er byggemateriale",
+    text: "Vil du ha maks effekt av innsatsen: spis vanlige gode måltider med protein, karbohydrater, frukt/grønt og drikk vann. Trening sender signalet; mat og søvn bygger resultatet."
+  },
+  {
+    title: "Programmet er kartet",
+    text: "Å følge programmet er viktig fordi små steg over tid slår tilfeldige maksøkter. Men programmet er ikke sjefen over kroppen. Juster ned når formen eller energien sier fra."
+  }
+];
 
 async function hashText(value) {
   const bytes = new TextEncoder().encode(value);
@@ -283,8 +323,10 @@ function render() {
   renderBadges(streak, pushBest);
   renderStats();
   renderMotivation(todayWorkout);
+  renderCoachFeedback();
   renderHistory();
   renderMilestones(pushBest);
+  renderFacts();
 }
 
 function renderExercises(workout) {
@@ -388,6 +430,67 @@ function renderMotivation(workout) {
   ];
   const message = messages[state.history.length % messages.length];
   els.motivationCard.innerHTML = `<span>${message.title}</span><p>${message.text}</p>`;
+}
+
+function renderCoachFeedback() {
+  const todayEntry = state.history.find((entry) => entry.date === isoDate());
+  els.coachFeedback.classList.toggle("is-visible", Boolean(todayEntry));
+
+  if (!todayEntry) {
+    els.feedbackTitle.textContent = "Etter økten";
+    els.feedbackStats.innerHTML = "";
+    els.feedbackBody.textContent = "Når dagens økt er fullført får du kort feedback her med tallene dine og et relevant fakta-poeng.";
+    return;
+  }
+
+  const totalWorkouts = state.history.length;
+  const pushTotal = todayEntry.actual.pushupsTotal;
+  const sitTotal = todayEntry.actual.situpsTotal;
+  const pushBest = bestPushups();
+  const goalGap = Math.max(0, state.profile.goal - pushBest);
+  const fact = coachFactFor(todayEntry, totalWorkouts);
+
+  els.feedbackTitle.textContent = "Økten er logget";
+  els.feedbackStats.innerHTML = [
+    ["I dag", `${pushTotal} pushups${sitTotal ? ` + ${sitTotal} situps` : ""}`],
+    ["Streak", `${currentStreak()} dager`],
+    ["Beste sett", `${pushBest}/${state.profile.goal}`],
+    ["Igjen til 100", goalGap]
+  ].map(([label, value]) => `
+    <article class="feedback-stat">
+      <span>${label}</span>
+      <strong>${value}</strong>
+    </article>
+  `).join("");
+  els.feedbackBody.innerHTML = `<strong>${fact.title}</strong> ${fact.text}`;
+}
+
+function coachFactFor(entry, totalWorkouts) {
+  if (entry.effort === "tung") return factDeck[4];
+  if (totalWorkouts % 10 === 0) return factDeck[0];
+  if (totalWorkouts % 7 === 0) return factDeck[5];
+  if (entry.actual.pushupsTotal < entry.targets.pushupsPerSet * entry.targets.sets) return factDeck[7];
+  if (totalWorkouts < 5) return factDeck[2];
+  return factDeck[totalWorkouts % factDeck.length];
+}
+
+function renderFacts() {
+  const totalWorkouts = state.history.length;
+  const selected = [
+    factDeck[0],
+    factDeck[1],
+    factDeck[2],
+    factDeck[3],
+    totalWorkouts >= 7 ? factDeck[5] : factDeck[4],
+    factDeck[6]
+  ];
+
+  els.factList.innerHTML = selected.map((fact) => `
+    <article class="fact-item">
+      <strong>${fact.title}</strong>
+      <p>${fact.text}</p>
+    </article>
+  `).join("");
 }
 
 function renderBadges(streak, pushBest) {
