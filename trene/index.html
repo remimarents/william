@@ -171,6 +171,20 @@
           <div class="bar-chart" id="graphBars" aria-label="Graf over pushups per økt"></div>
           <p class="hint" id="graphCaption">Fullfør noen økter for å bygge grafen.</p>
         </article>
+        <article class="photo-progress-card">
+          <div class="section-heading tight">
+            <div>
+              <h3>Bilder fra speilet</h3>
+              <p class="hint">Last opp startbilde og nytt bilde hver 10. økt.</p>
+            </div>
+          </div>
+          <label class="text-button photo-progress-button">
+            Last opp bilde
+            <input id="progressPhotoInput" type="file" accept="image/*" capture="user" />
+          </label>
+          <p class="hint" id="progressPhotoHint">Første bilde blir startbilde. Etterpå foreslår appen bilde ved økt 10, 20, 30 osv.</p>
+          <div class="photo-gallery" id="photoGallery"></div>
+        </article>
       </section>
 
       <section class="panel" id="planPanel">

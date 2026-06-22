@@ -22,6 +22,7 @@ const defaultState = {
     photoEvery: 10
   },
   history: [],
+  photos: [],
   notifications: {
     scheduledFor: ""
   },
@@ -58,6 +59,9 @@ const els = {
   statsGrid: document.querySelector("#statsGrid"),
   graphBars: document.querySelector("#graphBars"),
   graphCaption: document.querySelector("#graphCaption"),
+  progressPhotoInput: document.querySelector("#progressPhotoInput"),
+  progressPhotoHint: document.querySelector("#progressPhotoHint"),
+  photoGallery: document.querySelector("#photoGallery"),
   motivationCard: document.querySelector("#motivationCard"),
   planSummary: document.querySelector("#planSummary"),
   planPhases: document.querySelector("#planPhases"),
@@ -227,7 +231,17 @@ function normalizeState(value) {
       ...defaultState.notifications,
       ...(value.notifications || {})
     },
-    history: Array.isArray(value.history) ? value.history.map(normalizeEntry) : []
+    history: Array.isArray(value.history) ? value.history.map(normalizeEntry) : [],
+    photos: Array.isArray(value.photos) ? value.photos.map(normalizePhoto) : []
+  };
+}
+
+function normalizePhoto(photo) {
+  return {
+    date: photo.date || isoDate(),
+    workoutNumber: clamp(Number(photo.workoutNumber), 0, 1000),
+    label: photo.label || "Bilde",
+    dataUrl: photo.dataUrl || photo.photo || ""
   };
 }
 
@@ -465,7 +479,7 @@ function renderStats() {
   const doneLast7 = last7.length;
   const pushTotal = entries.reduce((sum, entry) => sum + (entry.actual?.pushupsTotal || 0), 0);
   const sitTotal = entries.reduce((sum, entry) => sum + (entry.actual?.situpsTotal || 0), 0);
-  const photos = entries.filter((entry) => entry.photo).length;
+  const photos = allProgressPhotos().length;
 
   els.statsGrid.innerHTML = [
     ["Siste 7 dager", `${doneLast7}/7`],
@@ -480,6 +494,51 @@ function renderStats() {
   `).join("");
 
   renderGraph(entries);
+  renderPhotoGallery();
+}
+
+function allProgressPhotos() {
+  const savedPhotos = state.photos.map((photo) => ({ ...photo, source: "progress" }));
+  const historyPhotos = sortedHistory()
+    .filter((entry) => entry.photo)
+    .map((entry, index) => ({
+      date: entry.date,
+      workoutNumber: Math.max(1, state.history.length - index),
+      label: `Økt ${Math.max(1, state.history.length - index)}`,
+      dataUrl: entry.photo,
+      source: "history"
+    }));
+
+  return [...savedPhotos, ...historyPhotos]
+    .filter((photo) => photo.dataUrl)
+    .sort((a, b) => (a.workoutNumber || 0) - (b.workoutNumber || 0) || a.date.localeCompare(b.date));
+}
+
+function renderPhotoGallery() {
+  const photos = allProgressPhotos();
+  const nextWorkout = state.history.length + 1;
+  const nextPhotoWorkout = photos.length === 0
+    ? 0
+    : Math.ceil(nextWorkout / state.profile.photoEvery) * state.profile.photoEvery;
+
+  els.progressPhotoHint.textContent = photos.length === 0
+    ? "Last opp startbildet her. Ta bildet i speilet med samme lys og vinkel hver gang."
+    : `Neste planlagte bilde er ved økt ${nextPhotoWorkout}. Bruk samme lys, vinkel og avstand.`;
+
+  els.photoGallery.innerHTML = photos.length
+    ? photos.map((photo, index) => `
+        <article class="photo-tile">
+          <img src="${photo.dataUrl}" alt="${photo.label}" />
+          <span>${index === 0 ? "Start" : photo.label}</span>
+          <small>${formatDate(photo.date)}</small>
+        </article>
+      `).join("")
+    : `
+        <div class="empty-gallery">
+          <strong>Ingen bilder ennå</strong>
+          <span>Startbilde legges inn her. Etterpå blir dag 10, 20, 30 osv. lett å sammenligne.</span>
+        </div>
+      `;
 }
 
 function renderGraph(entries) {
@@ -907,6 +966,34 @@ function handlePhotoChange(event) {
   const file = event.target.files?.[0];
   if (!file) return;
 
+  compressImage(file, (dataUrl) => {
+    state.pendingPhoto = dataUrl;
+    saveState();
+    renderPhotoCheckin();
+  });
+}
+
+function handleProgressPhotoChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  compressImage(file, (dataUrl) => {
+    const nextWorkout = state.history.length + 1;
+    const hasAnyPhoto = allProgressPhotos().length > 0;
+    const workoutNumber = hasAnyPhoto ? nextWorkout : 0;
+    state.photos.push({
+      date: isoDate(),
+      workoutNumber,
+      label: workoutNumber === 0 ? "Startbilde" : `Økt ${workoutNumber}`,
+      dataUrl
+    });
+    saveState();
+    renderStats();
+    event.target.value = "";
+  });
+}
+
+function compressImage(file, onDone) {
   const reader = new FileReader();
   reader.addEventListener("load", () => {
     const image = new Image();
@@ -918,9 +1005,7 @@ function handlePhotoChange(event) {
       canvas.height = Math.round(image.height * scale);
       const context = canvas.getContext("2d");
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      state.pendingPhoto = canvas.toDataURL("image/jpeg", 0.72);
-      saveState();
-      renderPhotoCheckin();
+      onDone(canvas.toDataURL("image/jpeg", 0.72));
     });
     image.src = reader.result;
   });
@@ -935,6 +1020,7 @@ els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
 els.testNtfyButton.addEventListener("click", testNtfy);
 els.photoInput.addEventListener("change", handlePhotoChange);
+els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
 
 document.querySelectorAll(".tab").forEach((tab) => {
