@@ -36,6 +36,15 @@ const els = {
   helpPopover: document.querySelector("#helpPopover"),
   helpPopoverText: document.querySelector("#helpPopoverText"),
   helpPopoverClose: document.querySelector("#helpPopoverClose"),
+  exerciseGuidePopover: document.querySelector("#exerciseGuidePopover"),
+  exerciseGuideClose: document.querySelector("#exerciseGuideClose"),
+  exerciseGuideTitle: document.querySelector("#exerciseGuideTitle"),
+  exerciseGuideMedia: document.querySelector("#exerciseGuideMedia"),
+  exerciseGuideImage: document.querySelector("#exerciseGuideImage"),
+  exerciseGuideMuscles: document.querySelector("#exerciseGuideMuscles"),
+  exerciseGuideWhy: document.querySelector("#exerciseGuideWhy"),
+  exerciseGuideHow: document.querySelector("#exerciseGuideHow"),
+  exerciseGuideMistakes: document.querySelector("#exerciseGuideMistakes"),
   usernameInput: document.querySelector("#usernameInput"),
   passwordInput: document.querySelector("#passwordInput"),
   loginError: document.querySelector("#loginError"),
@@ -102,6 +111,49 @@ const els = {
 };
 
 let state = loadState();
+
+const exerciseGuides = {
+  pushups: {
+    title: "Pushups",
+    image: "./assets/exercises/pushups.jpg",
+    imageAlt: "Instruksjonsbilde for pushups.",
+    muscles: "Bryst, fremside skuldre, triceps og kjernemuskler. Mage, rumpe og rygg jobber også for å holde kroppen strak.",
+    why: "Pushups er en effektiv pressøvelse uten utstyr. Den bygger styrke i overkroppen og lærer kroppen å holde spenning fra skuldre til føtter.",
+    how: [
+      "Start i topposisjon med hendene litt bredere enn skuldrene.",
+      "Hold kroppen i en rett linje fra hode til hæler.",
+      "Senk deg kontrollert til brystet nærmer seg gulvet.",
+      "Press opp igjen uten at hoften henger eller skyter opp først.",
+      "Stopp settet når teknikken ikke lenger er god."
+    ],
+    mistakes: [
+      "Hoften henger ned eller rumpen skyves høyt opp.",
+      "Albuene peker rett ut til siden i stedet for litt skrått bakover.",
+      "Reps blir for korte og brystet kommer ikke langt nok ned.",
+      "Hodet skyves frem i stedet for at nakken holdes lang."
+    ]
+  },
+  situps: {
+    title: "Situps",
+    image: "./assets/exercises/situps.jpg",
+    imageAlt: "Instruksjonsbilde for situps.",
+    muscles: "Magemuskler, spesielt rette magemuskler. Hoftebøyerne hjelper også, og kjernen jobber med kontroll.",
+    why: "Situps bygger utholdenhet og kontroll i mageområdet. De passer godt i programmet fordi de er enkle å måle og kan progresseres mot ett langt sett.",
+    how: [
+      "Ligg på ryggen med bøyde knær og føttene i gulvet.",
+      "Stram magen lett før du starter.",
+      "Rull eller løft overkroppen kontrollert opp.",
+      "Senk rolig ned igjen uten å kaste kroppen bakover.",
+      "Hold tempoet jevnt og stopp hvis korsrygg eller nakke tar over."
+    ],
+    mistakes: [
+      "Rykk med nakken eller dra hardt i hodet.",
+      "Bruk fart i stedet for kontroll.",
+      "La føttene sprette opp for hver repetisjon.",
+      "Fortsette når korsryggen gjør vondt eller teknikken faller."
+    ]
+  }
+};
 
 const factDeck = [
   {
@@ -427,6 +479,7 @@ function render() {
 function renderExercises(workout) {
   const exercises = [
     {
+      key: "pushups",
       name: "Pushups",
       detail: supportText(workout.pushupsPerSet, workout.pushSupport),
       mainValue: workout.pushupsPerSet,
@@ -435,6 +488,7 @@ function renderExercises(workout) {
       totalId: "actualPushTotalInput"
     },
     {
+      key: "situps",
       name: "Situps",
       detail: workout.situpsPerSet > 0 ? supportText(workout.situpsPerSet, workout.sitSupport) : "Test startnivå: skriv hovedsett og total.",
       mainValue: workout.situpsPerSet > 0 ? workout.situpsPerSet : "",
@@ -447,7 +501,10 @@ function renderExercises(workout) {
   els.exerciseList.innerHTML = exercises.map((exercise) => `
     <article class="exercise-row">
       <span>
-        <span class="exercise-name">${exercise.name}</span>
+        <span class="exercise-title-row">
+          <span class="exercise-name">${exercise.name}</span>
+          <button class="exercise-guide-button" type="button" data-exercise-guide="${exercise.key}" aria-label="Åpne øvelsesguide for ${exercise.name}">i</button>
+        </span>
         <span class="exercise-detail">${exercise.detail}</span>
       </span>
       <span class="exercise-inputs">
@@ -843,11 +900,60 @@ function hideHelp() {
   els.helpPopover.hidden = true;
 }
 
+function renderListItems(items) {
+  return items.map((item) => `<li>${item}</li>`).join("");
+}
+
+function showExerciseGuide(key) {
+  const guide = exerciseGuides[key];
+  if (!guide) return;
+
+  els.exerciseGuideTitle.textContent = guide.title;
+  els.exerciseGuideMuscles.textContent = guide.muscles;
+  els.exerciseGuideWhy.textContent = guide.why;
+  els.exerciseGuideHow.innerHTML = renderListItems(guide.how);
+  els.exerciseGuideMistakes.innerHTML = renderListItems(guide.mistakes);
+
+  els.exerciseGuideMedia.hidden = true;
+  els.exerciseGuideImage.removeAttribute("src");
+  els.exerciseGuideImage.alt = guide.imageAlt || "";
+
+  if (guide.image) {
+    els.exerciseGuideImage.onload = () => {
+      els.exerciseGuideMedia.hidden = false;
+    };
+    els.exerciseGuideImage.onerror = () => {
+      els.exerciseGuideMedia.hidden = true;
+      els.exerciseGuideImage.removeAttribute("src");
+    };
+    els.exerciseGuideImage.src = guide.image;
+  }
+
+  hideHelp();
+  els.exerciseGuidePopover.hidden = false;
+}
+
+function hideExerciseGuide() {
+  els.exerciseGuidePopover.hidden = true;
+}
+
 function handleHelpOverlayClick(event) {
   if (event.target === els.helpPopover) hideHelp();
 }
 
+function handleExerciseGuideOverlayClick(event) {
+  if (event.target === els.exerciseGuidePopover) hideExerciseGuide();
+}
+
 function handleHelpClick(event) {
+  const guideButton = event.target.closest("[data-exercise-guide]");
+  if (guideButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    showExerciseGuide(guideButton.dataset.exerciseGuide);
+    return;
+  }
+
   const button = event.target.closest(".info-button");
   if (!button) return;
 
@@ -1075,7 +1181,15 @@ els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
 els.helpPopoverClose.addEventListener("click", hideHelp);
 els.helpPopover.addEventListener("click", handleHelpOverlayClick);
+els.exerciseGuideClose.addEventListener("click", hideExerciseGuide);
+els.exerciseGuidePopover.addEventListener("click", handleExerciseGuideOverlayClick);
 document.addEventListener("click", handleHelpClick);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    hideHelp();
+    hideExerciseGuide();
+  }
+});
 
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => switchTab(tab.dataset.tab));

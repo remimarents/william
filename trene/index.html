@@ -291,6 +291,38 @@
         <button class="icon-button" id="helpPopoverClose" type="button" aria-label="Lukk hjelpetekst">×</button>
       </div>
     </div>
+    <div class="exercise-guide-popover" id="exerciseGuidePopover" role="dialog" aria-modal="true" aria-labelledby="exerciseGuideTitle" hidden>
+      <article class="exercise-guide-card">
+        <div class="exercise-guide-header">
+          <div>
+            <p class="eyebrow">Øvelsesguide</p>
+            <h2 id="exerciseGuideTitle">Øvelse</h2>
+          </div>
+          <button class="icon-button" id="exerciseGuideClose" type="button" aria-label="Lukk øvelsesguide">×</button>
+        </div>
+        <figure class="exercise-guide-media" id="exerciseGuideMedia" hidden>
+          <img id="exerciseGuideImage" alt="" />
+        </figure>
+        <div class="exercise-guide-content">
+          <section>
+            <h3>Hva trenes?</h3>
+            <p id="exerciseGuideMuscles"></p>
+          </section>
+          <section>
+            <h3>Hvorfor er den bra?</h3>
+            <p id="exerciseGuideWhy"></p>
+          </section>
+          <section>
+            <h3>Slik gjør du</h3>
+            <ol id="exerciseGuideHow"></ol>
+          </section>
+          <section>
+            <h3>Vanlige feil</h3>
+            <ul id="exerciseGuideMistakes"></ul>
+          </section>
+        </div>
+      </article>
+    </div>
 
     <script src="./app.js" type="module"></script>
   </body>
