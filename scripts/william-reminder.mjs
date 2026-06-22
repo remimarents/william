@@ -4,6 +4,7 @@ const config = {
   topic: process.env.NTFY_TOPIC || "william-trene-wb-8v4k9m2p",
   appUrl: process.env.APP_URL || "https://remimarents.github.io/william/trene/",
   timezone: process.env.TZ_NAME || "Europe/Oslo",
+  defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "19:30",
   statePath: process.env.STATE_PATH || `${process.env.HOME}/.william-trene-reminder-state.json`
 };
 
@@ -37,7 +38,7 @@ function pickMessage(dateKey) {
 }
 
 async function fetchRecentNtfyMessages() {
-  const url = `https://ntfy.sh/${encodeURIComponent(config.topic)}/json?poll=1&since=36h`;
+  const url = `https://ntfy.sh/${encodeURIComponent(config.topic)}/json?poll=1&since=72h`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`ntfy poll failed: ${response.status} ${response.statusText}`);
@@ -49,6 +50,48 @@ async function fetchRecentNtfyMessages() {
     .filter(Boolean)
     .map((line) => JSON.parse(line))
     .filter((message) => message.event === "message");
+}
+
+function normalizeReminderConfig(value = {}) {
+  const reminderTime = typeof value.reminderTime === "string" && /^\d{2}:\d{2}$/.test(value.reminderTime)
+    ? value.reminderTime
+    : config.defaultReminderTime;
+  return {
+    enabled: value.enabled !== false,
+    reminderTime
+  };
+}
+
+function latestReminderConfig(messagesToCheck, state) {
+  const fallback = normalizeReminderConfig(state.reminderConfig);
+  return messagesToCheck
+    .filter((message) => message.title === "Trene-config" && message.message)
+    .sort((a, b) => (a.time || 0) - (b.time || 0))
+    .reduce((current, message) => {
+      try {
+        const parsed = JSON.parse(message.message);
+        if (parsed.type !== "william-trene-config") return current;
+        return normalizeReminderConfig(parsed);
+      } catch {
+        return current;
+      }
+    }, fallback);
+}
+
+function localTimeMinutes(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: config.timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).formatToParts(date);
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return Number(byType.hour) * 60 + Number(byType.minute);
+}
+
+function reminderIsDue(reminderTime) {
+  const [hours, minutes] = reminderTime.split(":").map(Number);
+  return localTimeMinutes() >= hours * 60 + minutes;
 }
 
 function hasCompletionForToday(messagesToCheck, today) {
@@ -120,6 +163,21 @@ async function main() {
   }
 
   const recentMessages = await fetchRecentNtfyMessages();
+  const reminderConfig = latestReminderConfig(recentMessages, state);
+  state.reminderConfig = reminderConfig;
+
+  if (!reminderConfig.enabled) {
+    console.log("reminders disabled by app config");
+    await writeState(state);
+    return;
+  }
+
+  if (!force && !reminderIsDue(reminderConfig.reminderTime)) {
+    console.log(`not due yet; reminder time is ${reminderConfig.reminderTime}`);
+    await writeState(state);
+    return;
+  }
+
   if (!force && hasCompletionForToday(recentMessages, today)) {
     console.log(`workout already completed for ${today}`);
     state.lastSkippedCompleted = today;

@@ -456,6 +456,7 @@ function saveSettings(event) {
 
   saveState();
   els.settingsDialog.close();
+  sendReminderConfig();
   render();
 }
 
@@ -555,6 +556,19 @@ function sendCompletionMessage(pushupsTotal, situpsTotal) {
     message,
     tags: "muscle,white_check_mark",
     priority: "low"
+  });
+}
+
+function sendReminderConfig() {
+  sendNtfy({
+    title: "Trene-config",
+    message: JSON.stringify({
+      type: "william-trene-config",
+      enabled: state.profile.remindersEnabled,
+      reminderTime: state.profile.reminderTime
+    }),
+    tags: "gear",
+    priority: "min"
   });
 }
 

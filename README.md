@@ -26,7 +26,7 @@ python3 -m http.server 4173
 
 ## Mac mini-påminner
 
-Appen sender en ntfy-melding med tittelen `Bra jobbet` når William fullfører dagens økt. Mac mini kjører `scripts/william-reminder.mjs` hver dag kl. 19:30 via launchd. Scriptet sjekker ntfy-topicens siste meldinger og sender bare påminnelse hvis dagens fullført-melding mangler.
+Appen sender en ntfy-melding med tittelen `Bra jobbet` når William fullfører dagens økt. Når innstillinger lagres, sender appen også valgt påminnelsestid som en `Trene-config`-melding. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet sjekker ntfy-topicens siste meldinger og sender bare påminnelse hvis valgt tid er passert og dagens fullført-melding mangler.
 
 Topic: `william-trene-wb-8v4k9m2p`
 

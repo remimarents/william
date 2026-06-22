@@ -22,15 +22,12 @@
     <string>https://remimarents.github.io/william/trene/</string>
     <key>TZ_NAME</key>
     <string>Europe/Oslo</string>
+    <key>DEFAULT_REMINDER_TIME</key>
+    <string>19:30</string>
   </dict>
 
-  <key>StartCalendarInterval</key>
-  <dict>
-    <key>Hour</key>
-    <integer>19</integer>
-    <key>Minute</key>
-    <integer>30</integer>
-  </dict>
+  <key>StartInterval</key>
+  <integer>900</integer>
 
   <key>StandardOutPath</key>
   <string>/Users/remimarents/Library/Logs/william-trene-reminder.log</string>
