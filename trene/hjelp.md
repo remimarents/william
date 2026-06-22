@@ -10,6 +10,8 @@ WB Trene er en privat treningsapp for daglig progresjon mot ett sammenhengende s
 
 Logg inn med brukernavnet og passordet du har fått.
 
+Brukernavn og passord trengs normalt bare første gang appen tas i bruk på iPhone. Etterpå husker appen innloggingen lokalt.
+
 Hvis appen åpnes i Safari og du vil ha den som app:
 
 1. Trykk delingsknappen i Safari.
@@ -228,13 +230,3 @@ Dette kan brukes som backup eller for å se dataene utenfor appen.
 - Ikke tren til failure hver dag.
 - På tunge dager: gjør en ærlig minimumsøkt.
 - Mat, vann og søvn gjør treningen mer effektiv.
-
-## 17. Hvis appen viser gammel versjon
-
-Åpne denne adressen i Safari:
-
-`https://remimarents.github.io/william/trene/?v=19`
-
-Lukk deretter appen fra appbytteren og åpne den igjen.
-
-Nyere versjoner av appen henter appskallet fra nett først, så dette skal normalt ikke være nødvendig ofte.

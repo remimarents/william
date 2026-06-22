@@ -1,4 +1,4 @@
-const CACHE_NAME = "william-trene-v19";
+const CACHE_NAME = "william-trene-v20";
 const ASSETS = [
   "./",
   "./index.html",
@@ -36,6 +36,7 @@ self.addEventListener("fetch", (event) => {
     url.pathname.endsWith("/trene/index.html") ||
     url.pathname.endsWith("/trene/app.js") ||
     url.pathname.endsWith("/trene/styles.css") ||
+    url.pathname.endsWith("/trene/hjelp.md") ||
     url.pathname.endsWith("/trene/manifest.webmanifest");
 
   if (isAppShell) {
