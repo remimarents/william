@@ -120,6 +120,22 @@ const factDeck = [
   {
     title: "Programmet er kartet",
     text: "Å følge programmet er viktig fordi små steg over tid slår tilfeldige maksøkter. Men programmet er ikke sjefen over kroppen. Juster ned når formen eller energien sier fra."
+  },
+  {
+    title: "Du gjør dette for deg selv",
+    text: "Ingen andre kan ta repsene for deg. Når du åpner appen og gjør økten, trener du på å stole på deg selv: Jeg gjør det jeg har bestemt, også når ingen følger med."
+  },
+  {
+    title: "Når du ikke orker, teller det ekstra",
+    text: "På lette dager trener du muskler. På dager du ikke orker, trener du viljestyrke. Da trenger du ikke knuse rekorder; du trenger å møte opp og gjøre en ærlig minimumsøkt."
+  },
+  {
+    title: "Viljestyrke kan brukes flere steder",
+    text: "Den samme ferdigheten du trener her brukes i lekser, prøver, gaming-trening, rydding og andre mål: starte selv, holde fokus, tåle at det er litt ubehagelig, og fullføre."
+  },
+  {
+    title: "Maks effekt per innsats",
+    text: "Smart innsats er ikke å gjøre mest mulig hver dag. Det er å gjøre nok, ofte nok, med god form, mat og søvn. Da får du både sterkere kropp og bedre vane."
   }
 ];
 
@@ -466,10 +482,12 @@ function renderCoachFeedback() {
 }
 
 function coachFactFor(entry, totalWorkouts) {
-  if (entry.effort === "tung") return factDeck[4];
+  if (entry.effort === "tung") return factDeck[9];
   if (totalWorkouts % 10 === 0) return factDeck[0];
   if (totalWorkouts % 7 === 0) return factDeck[5];
   if (entry.actual.pushupsTotal < entry.targets.pushupsPerSet * entry.targets.sets) return factDeck[7];
+  if (totalWorkouts % 5 === 0) return factDeck[10];
+  if (totalWorkouts % 3 === 0) return factDeck[8];
   if (totalWorkouts < 5) return factDeck[2];
   return factDeck[totalWorkouts % factDeck.length];
 }
@@ -482,7 +500,11 @@ function renderFacts() {
     factDeck[2],
     factDeck[3],
     totalWorkouts >= 7 ? factDeck[5] : factDeck[4],
-    factDeck[6]
+    factDeck[6],
+    factDeck[8],
+    factDeck[9],
+    factDeck[10],
+    factDeck[11]
   ];
 
   els.factList.innerHTML = selected.map((fact) => `
