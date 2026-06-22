@@ -1,4 +1,7 @@
 const STORAGE_KEY = "william-trene-v1";
+const AUTH_KEY = "william-trene-auth-v1";
+const AUTH_USER = "williamberner";
+const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const defaultState = {
@@ -14,6 +17,12 @@ const defaultState = {
 };
 
 const els = {
+  appShell: document.querySelector("#appShell"),
+  loginShell: document.querySelector("#loginShell"),
+  loginForm: document.querySelector("#loginForm"),
+  usernameInput: document.querySelector("#usernameInput"),
+  passwordInput: document.querySelector("#passwordInput"),
+  loginError: document.querySelector("#loginError"),
   todayLabel: document.querySelector("#todayLabel"),
   streakDays: document.querySelector("#streakDays"),
   xpTotal: document.querySelector("#xpTotal"),
@@ -29,6 +38,7 @@ const els = {
   historyList: document.querySelector("#historyList"),
   milestones: document.querySelector("#milestones"),
   exportButton: document.querySelector("#exportButton"),
+  logoutButton: document.querySelector("#logoutButton"),
   settingsButton: document.querySelector("#settingsButton"),
   settingsDialog: document.querySelector("#settingsDialog"),
   saveSettingsButton: document.querySelector("#saveSettingsButton"),
@@ -45,6 +55,57 @@ const els = {
 };
 
 let state = loadState();
+
+async function hashText(value) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function isAuthenticated() {
+  return localStorage.getItem(AUTH_KEY) === AUTH_PASSWORD_HASH;
+}
+
+function setAuthenticated() {
+  localStorage.setItem(AUTH_KEY, AUTH_PASSWORD_HASH);
+  showApp();
+}
+
+function showApp() {
+  els.loginShell.classList.add("is-unlocked");
+  els.appShell.classList.remove("is-locked");
+  els.appShell.removeAttribute("aria-hidden");
+}
+
+function showLogin() {
+  els.appShell.classList.add("is-locked");
+  els.appShell.setAttribute("aria-hidden", "true");
+  els.loginShell.classList.remove("is-unlocked");
+  els.passwordInput.value = "";
+  els.usernameInput.focus();
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  els.loginError.textContent = "";
+
+  const username = els.usernameInput.value.trim().toLowerCase();
+  const passwordHash = await hashText(els.passwordInput.value);
+
+  if (username === AUTH_USER && passwordHash === AUTH_PASSWORD_HASH) {
+    setAuthenticated();
+    return;
+  }
+
+  els.loginError.textContent = "Feil brukernavn eller passord.";
+  els.passwordInput.value = "";
+  els.passwordInput.focus();
+}
+
+function logout() {
+  localStorage.removeItem(AUTH_KEY);
+  showLogin();
+}
 
 function loadState() {
   try {
@@ -283,6 +344,8 @@ function exportData() {
 }
 
 els.completeButton.addEventListener("click", completeWorkout);
+els.loginForm.addEventListener("submit", handleLogin);
+els.logoutButton.addEventListener("click", logout);
 els.settingsButton.addEventListener("click", openSettings);
 els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
@@ -293,6 +356,12 @@ document.querySelectorAll(".tab").forEach((tab) => {
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+
+if (isAuthenticated()) {
+  showApp();
+} else {
+  showLogin();
 }
 
 render();

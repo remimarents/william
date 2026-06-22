@@ -13,7 +13,25 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <section class="login-shell" id="loginShell" aria-labelledby="loginTitle">
+      <form class="login-card" id="loginForm">
+        <img class="login-icon" src="./assets/icon-192.png" alt="" />
+        <p class="eyebrow">Privat treningsapp</p>
+        <h1 id="loginTitle">Trene</h1>
+        <label>
+          Brukernavn
+          <input id="usernameInput" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+        </label>
+        <label>
+          Passord
+          <input id="passwordInput" type="password" autocomplete="current-password" required />
+        </label>
+        <button class="primary-button" type="submit">Logg inn</button>
+        <p class="login-error" id="loginError" role="alert"></p>
+      </form>
+    </section>
+
+    <main class="app-shell is-locked" id="appShell" aria-hidden="true">
       <section class="hero" aria-label="Dagens treningsstatus">
         <div class="hero__top">
           <div>
@@ -55,9 +73,14 @@
             <p class="eyebrow">Dagens oppdrag</p>
             <h2 id="todayWorkoutTitle">Klar?</h2>
           </div>
-          <button class="icon-button" id="settingsButton" type="button" aria-label="Innstillinger">
-            <span aria-hidden="true">⚙</span>
-          </button>
+          <div class="toolbar-actions">
+            <button class="icon-button" id="logoutButton" type="button" aria-label="Logg ut">
+              <span aria-hidden="true">⎋</span>
+            </button>
+            <button class="icon-button" id="settingsButton" type="button" aria-label="Innstillinger">
+              <span aria-hidden="true">⚙</span>
+            </button>
+          </div>
         </div>
 
         <div class="exercise-list" id="exerciseList"></div>
