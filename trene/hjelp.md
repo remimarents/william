@@ -1,5 +1,7 @@
 # WB Trene - hjelp og bruksanvisning
 
+Designet versjon: [Hjelp/Bruksanvisning](./hjelp.html)
+
 WB Trene er en privat treningsapp for daglig progresjon mot ett sammenhengende sett på 100 pushups og 100 situps. Appen bruker hovedsett, støtte-sett, streaks, statistikk, bilder og fakta for å gjøre treningen enkel å følge over tid.
 
 ## 1. Kom i gang

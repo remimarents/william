@@ -1,9 +1,10 @@
-const CACHE_NAME = "william-trene-v21";
+const CACHE_NAME = "william-trene-v22";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./hjelp.html",
   "./hjelp.md",
   "./manifest.webmanifest",
   "./assets/icon-192.png",
@@ -36,6 +37,7 @@ self.addEventListener("fetch", (event) => {
     url.pathname.endsWith("/trene/index.html") ||
     url.pathname.endsWith("/trene/app.js") ||
     url.pathname.endsWith("/trene/styles.css") ||
+    url.pathname.endsWith("/trene/hjelp.html") ||
     url.pathname.endsWith("/trene/hjelp.md") ||
     url.pathname.endsWith("/trene/manifest.webmanifest");
 
