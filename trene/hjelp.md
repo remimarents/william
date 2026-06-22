@@ -48,7 +48,7 @@ Eksempel:
 
 `1 x 24 + 2 x 12 = 48 totalt`
 
-Totalen viser treningsmengde, men det betyr ikke at han har klart 48 i ett sett.
+Totalen viser treningsmengde, men det betyr ikke at du har klart 48 i ett sett.
 
 ### Støtte-sett
 
@@ -96,11 +96,11 @@ Hvis målet er:
 
 `1 x 24 + 2 x 12`
 
-og han klarer:
+og du klarer:
 
 `22 i første sett, deretter 10 og 8`
 
-registrerer han:
+registrerer du:
 
 - hovedsett: `22`
 - totalt: `40`
@@ -132,7 +132,7 @@ Statistikk-siden viser:
 
 Grafen følger hovedsettet, fordi målet er `1 x 100`.
 
-Totalvolum er fortsatt nyttig, men det er hovedsettet som viser hvor nær han er sluttmålet.
+Totalvolum er fortsatt nyttig, men det er hovedsettet som viser hvor nær du er sluttmålet.
 
 ## 8. Bilder fra speilet
 
@@ -185,7 +185,7 @@ Forklaringen åpnes som et tydelig overlay. Trykk `x` eller utenfor kortet for �
 
 I innstillinger kan påminnelser styres.
 
-Påminnelsene bruker ntfy/Mac mini-oppsettet. Tidspunktet bestemmer når han skal få varsel dersom økten ikke er gjort.
+Påminnelsene bruker ntfy/Mac mini-oppsettet. Tidspunktet bestemmer når du skal få varsel dersom økten ikke er gjort.
 
 Hvis påminnelsen ikke fungerer:
 
@@ -208,7 +208,7 @@ Startnivå er skjult når appen er satt opp. Hvis tallene må endres, trykk `End
 
 ## 14. Kompis-konto
 
-Hvis en kompis vil bruke WB Trene, kan han få egen brukerkonto med eget opplegg, egen logg og egne mål.
+Hvis en kompis vil bruke WB Trene, kan du be om en egen brukerkonto til kompisen med eget opplegg, egen logg og egne mål.
 
 I innstillinger:
 

@@ -1005,7 +1005,7 @@ function requestFriendAccount() {
     `Ønsket brukernavn: ${username}`,
     `E-post til passord: ${email}`,
     "",
-    "Han skal ha egen trening, egen logg og egne mål."
+    "Kompisen skal ha egen trening, egen logg og egne mål."
   ].join("\n");
 
   els.friendRequestStatus.textContent = "Åpner Meldinger. Trykk send der for å sende forespørselen.";
