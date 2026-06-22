@@ -26,7 +26,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -260,7 +261,7 @@ h2 {
 
 .exercise-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr minmax(86px, 112px);
   align-items: center;
   gap: 12px;
   min-height: 72px;
@@ -286,6 +287,55 @@ h2 {
   font-weight: 950;
   font-size: 1.45rem;
   color: var(--dark);
+}
+
+.actual-input {
+  min-height: 44px;
+  text-align: center;
+  font-weight: 950;
+}
+
+.effort-row,
+.photo-checkin,
+.stats-grid,
+.info-card {
+  margin: 12px 0;
+}
+
+.photo-checkin {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ecfeff;
+}
+
+.photo-checkin.is-due {
+  display: flex;
+}
+
+.photo-checkin span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.photo-button {
+  display: grid;
+  place-items: center;
+  white-space: nowrap;
+}
+
+.photo-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .primary-button {
@@ -371,7 +421,9 @@ h2 {
   gap: 10px;
 }
 
-.mini-card {
+.mini-card,
+.stat-card,
+.info-card {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -389,6 +441,36 @@ h2 {
   display: block;
   margin-top: 8px;
   font-size: 1.6rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stat-card span,
+.info-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.35rem;
+}
+
+.info-card {
+  background: #fff7ed;
+}
+
+.info-card p {
+  margin: 8px 0 0;
+  color: var(--ink);
+  line-height: 1.35;
 }
 
 .history-list {
@@ -455,7 +537,8 @@ label {
   font-size: 0.9rem;
 }
 
-input {
+input,
+select {
   min-height: 48px;
   width: 100%;
   border: 1px solid var(--line);
@@ -464,6 +547,16 @@ input {
   color: var(--ink);
   background: white;
   font-size: 1rem;
+}
+
+.check-label {
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+}
+
+.check-label input {
+  min-height: 22px;
+  width: 22px;
 }
 
 @media (max-width: 390px) {

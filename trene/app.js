@@ -2,6 +2,8 @@ const STORAGE_KEY = "william-trene-v1";
 const AUTH_KEY = "william-trene-auth-v1";
 const AUTH_USER = "williamberner";
 const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
+const APP_URL = "https://remimarents.github.io/william/trene/";
+const DEFAULT_NTFY_TOPIC = "william-trene-wb-8v4k9m2p";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const defaultState = {
@@ -11,9 +13,17 @@ const defaultState = {
     pushBase: 15,
     situpBase: 0,
     sets: 2,
-    goal: 100
+    goal: 100,
+    ntfyTopic: DEFAULT_NTFY_TOPIC,
+    remindersEnabled: false,
+    reminderTime: "19:30",
+    photoEvery: 10
   },
-  history: []
+  history: [],
+  notifications: {
+    scheduledFor: ""
+  },
+  pendingPhoto: null
 };
 
 const els = {
@@ -32,9 +42,15 @@ const els = {
   title: document.querySelector("#todayWorkoutTitle"),
   exerciseList: document.querySelector("#exerciseList"),
   completeButton: document.querySelector("#completeButton"),
+  effortInput: document.querySelector("#effortInput"),
+  photoCheckin: document.querySelector("#photoCheckin"),
+  photoHint: document.querySelector("#photoHint"),
+  photoInput: document.querySelector("#photoInput"),
   dailyHint: document.querySelector("#dailyHint"),
   nextPushGoal: document.querySelector("#nextPushGoal"),
   situpStatus: document.querySelector("#situpStatus"),
+  statsGrid: document.querySelector("#statsGrid"),
+  motivationCard: document.querySelector("#motivationCard"),
   historyList: document.querySelector("#historyList"),
   milestones: document.querySelector("#milestones"),
   exportButton: document.querySelector("#exportButton"),
@@ -46,6 +62,10 @@ const els = {
   pushBaseInput: document.querySelector("#pushBaseInput"),
   situpBaseInput: document.querySelector("#situpBaseInput"),
   setsInput: document.querySelector("#setsInput"),
+  ntfyTopicInput: document.querySelector("#ntfyTopicInput"),
+  remindersInput: document.querySelector("#remindersInput"),
+  reminderTimeInput: document.querySelector("#reminderTimeInput"),
+  testNtfyButton: document.querySelector("#testNtfyButton"),
   badges: {
     first: document.querySelector("#badgeFirst"),
     week: document.querySelector("#badgeWeek"),
@@ -110,10 +130,49 @@ function logout() {
 function loadState() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return parsed?.version === 1 ? parsed : structuredClone(defaultState);
+    return parsed?.version === 1 ? normalizeState(parsed) : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
+}
+
+function normalizeState(value) {
+  return {
+    ...structuredClone(defaultState),
+    ...value,
+    profile: {
+      ...defaultState.profile,
+      ...(value.profile || {})
+    },
+    notifications: {
+      ...defaultState.notifications,
+      ...(value.notifications || {})
+    },
+    history: Array.isArray(value.history) ? value.history.map(normalizeEntry) : []
+  };
+}
+
+function normalizeEntry(entry) {
+  const sets = entry.sets || entry.targets?.sets || defaultState.profile.sets;
+  const targetPush = entry.targets?.pushupsPerSet || entry.pushupsPerSet || defaultState.profile.pushBase;
+  const targetSit = entry.targets?.situpsPerSet || entry.situpsPerSet || 0;
+  return {
+    ...entry,
+    sets,
+    targets: {
+      sets,
+      pushupsPerSet: targetPush,
+      situpsPerSet: targetSit
+    },
+    actual: {
+      pushupsPerSet: entry.actual?.pushupsPerSet || entry.pushupsPerSet || targetPush,
+      pushupsTotal: entry.actual?.pushupsTotal || (entry.pushupsPerSet || targetPush) * sets,
+      situpsPerSet: entry.actual?.situpsPerSet || entry.situpsPerSet || targetSit,
+      situpsTotal: entry.actual?.situpsTotal || (entry.situpsPerSet || targetSit) * sets
+    },
+    effort: entry.effort || "passe",
+    photo: entry.photo || null
+  };
 }
 
 function saveState() {
@@ -162,11 +221,11 @@ function currentStreak() {
 }
 
 function bestPushups() {
-  return Math.max(state.profile.pushBase, ...state.history.map((entry) => entry.pushupsPerSet || 0));
+  return Math.max(state.profile.pushBase, ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0));
 }
 
 function bestSitups() {
-  return Math.max(state.profile.situpBase, ...state.history.map((entry) => entry.situpsPerSet || 0));
+  return Math.max(state.profile.situpBase, ...state.history.map((entry) => entry.actual?.situpsPerSet || entry.situpsPerSet || 0));
 }
 
 function xpTotal() {
@@ -213,7 +272,10 @@ function render() {
     : "Stopp hvis teknikken faller. Kvalitet teller mer enn fart.";
 
   renderExercises(todayWorkout);
+  renderPhotoCheckin();
   renderBadges(streak, pushBest);
+  renderStats();
+  renderMotivation(todayWorkout);
   renderHistory();
   renderMilestones(pushBest);
 }
@@ -222,13 +284,15 @@ function renderExercises(workout) {
   const exercises = [
     {
       name: "Pushups",
-      detail: `${workout.sets} sett med rolig pause`,
-      count: `${workout.sets} × ${workout.pushupsPerSet}`
+      detail: `Mål: ${workout.sets} × ${workout.pushupsPerSet}. Juster hvis du tok flere eller færre.`,
+      value: workout.pushupsPerSet,
+      id: "actualPushInput"
     },
     {
       name: "Situps",
-      detail: workout.situpsPerSet > 0 ? `${workout.sets} sett` : "Finn startnivået: gjør maks kontrollert i ett sett",
-      count: workout.situpsPerSet > 0 ? `${workout.sets} × ${workout.situpsPerSet}` : "Test"
+      detail: workout.situpsPerSet > 0 ? `Mål: ${workout.sets} × ${workout.situpsPerSet}` : "Test startnivå: skriv hvor mange du tok i ett kontrollert sett",
+      value: workout.situpsPerSet > 0 ? workout.situpsPerSet : "",
+      id: "actualSitupInput"
     }
   ];
 
@@ -238,9 +302,58 @@ function renderExercises(workout) {
         <span class="exercise-name">${exercise.name}</span>
         <span class="exercise-detail">${exercise.detail}</span>
       </span>
-      <span class="rep-count">${exercise.count}</span>
+      <input class="actual-input" id="${exercise.id}" type="number" inputmode="numeric" min="0" max="200" value="${exercise.value}" aria-label="Faktisk ${exercise.name} per sett" />
     </article>
   `).join("");
+}
+
+function renderPhotoCheckin() {
+  const nextWorkout = state.history.length + 1;
+  const isDue = nextWorkout % state.profile.photoEvery === 0;
+  els.photoCheckin.classList.toggle("is-due", isDue);
+  els.photoHint.textContent = state.pendingPhoto
+    ? "Bilde er valgt for denne økten."
+    : `Økt ${nextWorkout}: ${isDue ? "ta gjerne et bilde i dag." : `neste bilde ved økt ${Math.ceil(nextWorkout / state.profile.photoEvery) * state.profile.photoEvery}.`}`;
+}
+
+function renderStats() {
+  const entries = sortedHistory();
+  const last7 = entries.slice(0, 7);
+  const doneLast7 = last7.length;
+  const pushTotal = entries.reduce((sum, entry) => sum + (entry.actual?.pushupsTotal || 0), 0);
+  const sitTotal = entries.reduce((sum, entry) => sum + (entry.actual?.situpsTotal || 0), 0);
+  const photos = entries.filter((entry) => entry.photo).length;
+
+  els.statsGrid.innerHTML = [
+    ["Siste 7 dager", `${doneLast7}/7`],
+    ["Pushups totalt", pushTotal],
+    ["Situps totalt", sitTotal],
+    ["Bilder lagret", photos]
+  ].map(([label, value]) => `
+    <article class="stat-card">
+      <span>${label}</span>
+      <strong>${value}</strong>
+    </article>
+  `).join("");
+}
+
+function renderMotivation(workout) {
+  const messages = [
+    {
+      title: "Tren smart",
+      text: "Små økninger slår store skippertak. En kontrollert økt som blir gjort teller mer enn en perfekt plan som blir droppet."
+    },
+    {
+      title: "Teknikk først",
+      text: "Pushups trener bryst, skuldre, armer og kjernemuskler når kroppen holdes strak. Stopp settet når formen begynner å falle."
+    },
+    {
+      title: "Restitusjon hjelper",
+      text: workout.isRecovery ? "I dag er lettere med vilje. Lett dag holder vanen i gang uten å tømme kroppen." : "Hvis økten kjennes tung, registrer det som tung. Da kan planen justeres roligere."
+    }
+  ];
+  const message = messages[state.history.length % messages.length];
+  els.motivationCard.innerHTML = `<span>${message.title}</span><p>${message.text}</p>`;
 }
 
 function renderBadges(streak, pushBest) {
@@ -256,7 +369,7 @@ function renderHistory() {
     ? history.map((entry) => `
         <li>
           <strong>${formatDate(entry.date)} · ${entry.xp} XP</strong>
-          <span>${entry.sets} × ${entry.pushupsPerSet} pushups${entry.situpsPerSet ? ` · ${entry.sets} × ${entry.situpsPerSet} situps` : " · situps test senere"}</span>
+          <span>Mål ${entry.targets.sets} × ${entry.targets.pushupsPerSet}, gjort ${entry.actual.pushupsTotal} pushups${entry.actual.situpsTotal ? ` · ${entry.actual.situpsTotal} situps` : " · situps test senere"} · ${entry.effort}</span>
         </li>
       `).join("")
     : "<li><strong>Ingen økter ennå</strong><span>Første fullføring starter streaken.</span></li>";
@@ -280,19 +393,40 @@ function completeWorkout() {
   if (completedToday()) return;
 
   const workout = workoutForToday();
+  const actualPushupsPerSet = clamp(Number(document.querySelector("#actualPushInput")?.value), 0, 200);
+  const actualSitupsPerSet = clamp(Number(document.querySelector("#actualSitupInput")?.value), 0, 200);
   const streakBefore = currentStreak();
-  const xp = 20 + Math.min(30, workout.pushupsPerSet) + (streakBefore >= 2 ? 10 : 0);
+  const actualPushupsTotal = actualPushupsPerSet * workout.sets;
+  const actualSitupsTotal = actualSitupsPerSet * workout.sets;
+  const targetPushupsTotal = workout.pushupsPerSet * workout.sets;
+  const hitTargetBonus = actualPushupsTotal >= targetPushupsTotal ? 10 : 0;
+  const xp = 20 + Math.min(30, actualPushupsPerSet) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
 
   state.history.push({
     date: isoDate(),
     sets: workout.sets,
     pushupsPerSet: workout.pushupsPerSet,
     situpsPerSet: workout.situpsPerSet,
+    targets: {
+      sets: workout.sets,
+      pushupsPerSet: workout.pushupsPerSet,
+      situpsPerSet: workout.situpsPerSet
+    },
+    actual: {
+      pushupsPerSet: actualPushupsPerSet,
+      pushupsTotal: actualPushupsTotal,
+      situpsPerSet: actualSitupsPerSet,
+      situpsTotal: actualSitupsTotal
+    },
+    effort: els.effortInput.value,
+    photo: state.pendingPhoto,
     xp
   });
 
+  state.pendingPhoto = null;
   saveState();
   render();
+  sendCompletionMessage(actualPushupsTotal, actualSitupsTotal);
 }
 
 function openSettings() {
@@ -300,6 +434,9 @@ function openSettings() {
   els.pushBaseInput.value = state.profile.pushBase;
   els.situpBaseInput.value = state.profile.situpBase;
   els.setsInput.value = state.profile.sets;
+  els.ntfyTopicInput.value = state.profile.ntfyTopic;
+  els.remindersInput.checked = state.profile.remindersEnabled;
+  els.reminderTimeInput.value = state.profile.reminderTime;
   els.settingsDialog.showModal();
 }
 
@@ -311,11 +448,15 @@ function saveSettings(event) {
     name: els.nameInput.value.trim() || "William",
     pushBase: clamp(Number(els.pushBaseInput.value), 1, 100),
     situpBase: clamp(Number(els.situpBaseInput.value), 0, 100),
-    sets: clamp(Number(els.setsInput.value), 1, 5)
+    sets: clamp(Number(els.setsInput.value), 1, 5),
+    ntfyTopic: sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC,
+    remindersEnabled: els.remindersInput.checked,
+    reminderTime: els.reminderTimeInput.value || "19:30"
   };
 
   saveState();
   els.settingsDialog.close();
+  scheduleReminderIfNeeded();
   render();
 }
 
@@ -343,12 +484,128 @@ function exportData() {
   URL.revokeObjectURL(url);
 }
 
+function sanitizeTopic(value) {
+  return value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+}
+
+async function sendNtfy({ title, message, tags = "muscle", priority = "default", delay = "" }) {
+  const topic = sanitizeTopic(state.profile.ntfyTopic);
+  if (!topic) return false;
+
+  const headers = {
+    Title: title,
+    Tags: tags,
+    Priority: priority,
+    Click: APP_URL
+  };
+
+  if (delay) headers.Delay = delay;
+
+  try {
+    const response = await fetch(`https://ntfy.sh/${topic}`, {
+      method: "POST",
+      headers,
+      body: message
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function scheduleReminderIfNeeded() {
+  if (!state.profile.remindersEnabled || completedToday()) return;
+  const today = isoDate();
+  if (state.notifications.scheduledFor === today) return;
+  const delay = reminderDelay();
+
+  const ok = await sendNtfy({
+    title: "Trene i dag?",
+    message: "Hvis økten ikke er gjort ennå: ta bare dagens mål rolig og trykk Fullfør etterpå.",
+    tags: "muscle,alarm_clock",
+    priority: "default",
+    delay
+  });
+
+  if (ok) {
+    state.notifications.scheduledFor = today;
+    saveState();
+  }
+}
+
+function reminderDelay() {
+  const [hours, minutes] = state.profile.reminderTime.split(":").map(Number);
+  const target = new Date();
+  target.setHours(hours || 19, minutes || 30, 0, 0);
+  const diffMs = target.getTime() - Date.now();
+  if (diffMs <= 0) return "";
+  const minutesUntil = Math.max(1, Math.round(diffMs / 60000));
+  return `${minutesUntil}m`;
+}
+
+function sendCompletionMessage(pushupsTotal, situpsTotal) {
+  if (!state.profile.remindersEnabled) return;
+
+  const streak = currentStreak();
+  const message = situpsTotal > 0
+    ? `Økt fullført: ${pushupsTotal} pushups og ${situpsTotal} situps. Streak: ${streak} dager.`
+    : `Økt fullført: ${pushupsTotal} pushups. Streak: ${streak} dager.`;
+
+  sendNtfy({
+    title: "Bra jobbet",
+    message,
+    tags: "muscle,white_check_mark",
+    priority: "low"
+  });
+}
+
+async function testNtfy() {
+  const previousTopic = state.profile.ntfyTopic;
+  state.profile.ntfyTopic = sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC;
+  const ok = await sendNtfy({
+    title: "Trene-test",
+    message: "Dette er en test fra Williams treningsapp.",
+    tags: "muscle"
+  });
+  state.profile.ntfyTopic = previousTopic;
+  els.testNtfyButton.textContent = ok ? "Test sendt" : "Kunne ikke sende";
+  window.setTimeout(() => {
+    els.testNtfyButton.textContent = "Test ntfy";
+  }, 2200);
+}
+
+function handlePhotoChange(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    const image = new Image();
+    image.addEventListener("load", () => {
+      const maxSide = 900;
+      const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      state.pendingPhoto = canvas.toDataURL("image/jpeg", 0.72);
+      saveState();
+      renderPhotoCheckin();
+    });
+    image.src = reader.result;
+  });
+  reader.readAsDataURL(file);
+}
+
 els.completeButton.addEventListener("click", completeWorkout);
 els.loginForm.addEventListener("submit", handleLogin);
 els.logoutButton.addEventListener("click", logout);
 els.settingsButton.addEventListener("click", openSettings);
 els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
+els.testNtfyButton.addEventListener("click", testNtfy);
+els.photoInput.addEventListener("change", handlePhotoChange);
 
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => switchTab(tab.dataset.tab));
@@ -365,3 +622,4 @@ if (isAuthenticated()) {
 }
 
 render();
+scheduleReminderIfNeeded();

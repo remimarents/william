@@ -85,6 +85,28 @@
 
         <div class="exercise-list" id="exerciseList"></div>
 
+        <div class="effort-row">
+          <label>
+            Hvordan føltes økten?
+            <select id="effortInput">
+              <option value="lett">Lett</option>
+              <option value="passe" selected>Passe</option>
+              <option value="tung">Tung</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="photo-checkin" id="photoCheckin">
+          <div>
+            <strong>Bilde-sjekk</strong>
+            <span id="photoHint">Hver 10. økt kan du ta et bilde for å se fremgang.</span>
+          </div>
+          <label class="text-button photo-button">
+            Ta bilde
+            <input id="photoInput" type="file" accept="image/*" capture="user" />
+          </label>
+        </div>
+
         <button class="primary-button" id="completeButton" type="button">Fullfør økten</button>
         <p class="hint" id="dailyHint">Gjør økten rolig og med god teknikk.</p>
       </section>
@@ -113,6 +135,8 @@
             <strong id="situpStatus">Test</strong>
           </article>
         </div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <article class="info-card" id="motivationCard"></article>
       </section>
 
       <section class="panel" id="historyPanel">
@@ -154,6 +178,19 @@
           Antall sett
           <input id="setsInput" type="number" inputmode="numeric" min="1" max="5" />
         </label>
+        <label>
+          ntfy topic
+          <input id="ntfyTopicInput" type="text" autocapitalize="none" spellcheck="false" />
+        </label>
+        <label class="check-label">
+          <input id="remindersInput" type="checkbox" />
+          Send ntfy-påminnelser
+        </label>
+        <label>
+          Påminnelse kl.
+          <input id="reminderTimeInput" type="time" />
+        </label>
+        <button class="text-button" id="testNtfyButton" type="button">Test ntfy</button>
         <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Lagre</button>
       </form>
     </dialog>
