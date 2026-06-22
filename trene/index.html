@@ -281,9 +281,14 @@
         <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Lagre</button>
       </form>
     </dialog>
-    <div class="help-popover" id="helpPopover" role="status" aria-live="polite" hidden>
-      <p id="helpPopoverText"></p>
-      <button class="icon-button" id="helpPopoverClose" type="button" aria-label="Lukk hjelpetekst">×</button>
+    <div class="help-popover" id="helpPopover" role="dialog" aria-modal="true" aria-labelledby="helpPopoverTitle" hidden>
+      <div class="help-card">
+        <div>
+          <p class="eyebrow" id="helpPopoverTitle">Forklaring</p>
+          <p id="helpPopoverText"></p>
+        </div>
+        <button class="icon-button" id="helpPopoverClose" type="button" aria-label="Lukk hjelpetekst">×</button>
+      </div>
     </div>
 
     <script src="./app.js" type="module"></script>

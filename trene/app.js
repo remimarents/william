@@ -842,6 +842,10 @@ function hideHelp() {
   els.helpPopover.hidden = true;
 }
 
+function handleHelpOverlayClick(event) {
+  if (event.target === els.helpPopover) hideHelp();
+}
+
 function handleHelpClick(event) {
   const button = event.target.closest(".info-button");
   if (!button) return;
@@ -1069,6 +1073,7 @@ els.photoInput.addEventListener("change", handlePhotoChange);
 els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
 els.helpPopoverClose.addEventListener("click", hideHelp);
+els.helpPopover.addEventListener("click", handleHelpOverlayClick);
 document.addEventListener("click", handleHelpClick);
 
 document.querySelectorAll(".tab").forEach((tab) => {
