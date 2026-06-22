@@ -34,6 +34,11 @@ body {
   color: var(--ink);
 }
 
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 button,
 input,
 select {
@@ -549,12 +554,17 @@ h2 {
   font-weight: 900;
   font-size: 0.82rem;
   min-height: 42px;
+  color: var(--dark);
+  background: white;
+  -webkit-text-fill-color: currentColor;
 }
 
 .tab.is-active {
-  background: linear-gradient(135deg, var(--dark), #134e4a);
-  border-color: var(--teal);
-  color: white;
+  background-color: var(--dark) !important;
+  background-image: linear-gradient(135deg, var(--dark), #134e4a) !important;
+  border-color: var(--teal) !important;
+  color: white !important;
+  -webkit-text-fill-color: white;
 }
 
 .panel {
