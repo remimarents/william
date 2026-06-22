@@ -159,7 +159,26 @@ Den skiller mellom:
 
 Planen kan ha støtte-sett selv om sluttmålet er ett sett. Det er fordi trening mot 100 i ett sett ofte trenger både kapasitet, teknikk og volum.
 
-## 10. Fakta-siden
+## 10. Kommende øvelser
+
+Når målet er nådd på de to første øvelsene, kan WB Trene bygges videre med nye øvelser. Tanken er at pushups og situps fullføres først, slik at vanen, teknikken og `1 x 100`-målet sitter før programmet blir større.
+
+Mulige utvidelser som kan låses opp senere:
+
+| Øvelse | Hvorfor den kan være nyttig |
+| --- | --- |
+| Knebøy | Bygger bein, hofter og generell arbeidskapasitet. |
+| Utfall | Trener ett bein om gangen og gir bedre balanse. |
+| Planke | Styrker kjernen og gjør pushups og situps mer stabile. |
+| Sideplanke | Gir sterkere mage og rygg på sidene av kroppen. |
+| Rygghev | Balanserer magearbeidet med mer trening for korsrygg. |
+| Mountain climbers | Kombinerer kjerne, skuldre og puls. |
+| Dips på benk | Gir ekstra trening for triceps, skuldre og press-styrke. |
+| Hollow hold | Bygger sterk magekontroll for stramme, gode repetisjoner. |
+| Burpees | Kan brukes som kondisjon og helkroppsøvelse. |
+| Pullups eller roing | Legger inn trekk-styrke som balanserer all press-treningen. |
+
+## 11. Fakta-siden
 
 Fakta-delen viser ett kort om gangen. Sveip sidelengs for å se flere kort.
 
@@ -175,13 +194,13 @@ Temaer kan være:
 
 Faktaene er korte fordi de skal være lette å lese etter en økt.
 
-## 11. Hva betyr ?-ikonene
+## 12. Hva betyr ?-ikonene
 
 Trykk på `?` for forklaring.
 
 Forklaringen åpnes som et tydelig overlay. Trykk `x` eller utenfor kortet for å lukke.
 
-## 12. Påminnelser
+## 13. Påminnelser
 
 I innstillinger kan påminnelser styres.
 
@@ -193,7 +212,7 @@ Hvis påminnelsen ikke fungerer:
 2. Sjekk tidspunktet.
 3. Trykk `Test ntfy`.
 
-## 13. Innstillinger
+## 14. Innstillinger
 
 Innstillinger inneholder:
 
@@ -206,7 +225,7 @@ Innstillinger inneholder:
 
 Startnivå er skjult når appen er satt opp. Hvis tallene må endres, trykk `Endre startnivå`.
 
-## 14. Kompis-konto
+## 15. Kompis-konto
 
 Hvis en kompis vil bruke WB Trene, kan du be om en egen brukerkonto til kompisen med eget opplegg, egen logg og egne mål.
 
@@ -218,13 +237,13 @@ I innstillinger:
 4. Fyll ut e-postadresse til passord.
 5. Appen åpner Meldinger med ferdig tekst til Remi.
 
-## 15. Eksport
+## 16. Eksport
 
 På Logg-siden kan data eksporteres som JSON.
 
 Dette kan brukes som backup eller for å se dataene utenfor appen.
 
-## 16. Gode regler for økten
+## 17. Gode regler for økten
 
 - Gode reps teller mer enn raske reps.
 - Stopp hovedsettet når teknikken faller.
