@@ -75,6 +75,7 @@ const els = {
   progressPhotoHint: document.querySelector("#progressPhotoHint"),
   photoGallery: document.querySelector("#photoGallery"),
   motivationCard: document.querySelector("#motivationCard"),
+  homeFactList: document.querySelector("#homeFactList"),
   planSummary: document.querySelector("#planSummary"),
   planPhases: document.querySelector("#planPhases"),
   historyList: document.querySelector("#historyList"),
@@ -910,13 +911,16 @@ function renderFacts() {
     factDeck[11]
   ];
 
-  els.factList.innerHTML = selected.map((fact) => `
+  const factsHtml = selected.map((fact) => `
     <article class="fact-item">
       <strong>${fact.title}</strong>
       <p>${fact.text}</p>
-      <span class="swipe-hint">Sveip for neste fakta</span>
+      <span class="swipe-hint">← Sveip begge veier →</span>
     </article>
   `).join("");
+
+  els.homeFactList.innerHTML = factsHtml;
+  els.factList.innerHTML = factsHtml;
 }
 
 function renderBadges(streak, pushBest) {

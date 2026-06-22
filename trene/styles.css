@@ -740,12 +740,23 @@ h2 {
   box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
 }
 
+.facts-card--home {
+  margin-top: 14px;
+}
+
 .chart-card h3,
 .photo-progress-card h3,
 .friend-request h3,
 .facts-card h3 {
   margin: 0;
   font-size: 1.05rem;
+}
+
+.swipe-cue {
+  margin: 5px 0 0;
+  color: var(--teal-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .photo-progress-button {
@@ -832,6 +843,10 @@ h2 {
   padding: 2px 0 8px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(22, 184, 166, 0.11) 48%, rgba(255, 255, 255, 0)),
+    transparent;
+  border-radius: 12px;
 }
 
 .fact-list::-webkit-scrollbar {
@@ -865,6 +880,7 @@ h2 {
   color: var(--teal-dark);
   font-size: 0.78rem;
   font-weight: 900;
+  text-align: center;
 }
 
 .chart-label {
