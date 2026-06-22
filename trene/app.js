@@ -4,6 +4,7 @@ const AUTH_USER = "williamberner";
 const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
 const APP_URL = "https://remimarents.github.io/william/trene/";
 const DEFAULT_NTFY_TOPIC = "william-trene-wb-8v4k9m2p";
+const FRIEND_REQUEST_PHONE = "91666666";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const defaultState = {
@@ -643,7 +644,7 @@ function requestFriendAccount() {
     "Han skal ha egen trening, egen logg og egne mål."
   ].join("\n");
 
-  window.location.href = `sms:&body=${encodeURIComponent(body)}`;
+  window.location.href = `sms:${FRIEND_REQUEST_PHONE}&body=${encodeURIComponent(body)}`;
 }
 
 function handlePhotoChange(event) {
