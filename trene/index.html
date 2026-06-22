@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Trene" />
+    <title>Trene med William</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero" aria-label="Dagens treningsstatus">
+        <div class="hero__top">
+          <div>
+            <p class="eyebrow" id="todayLabel">I dag</p>
+            <h1>Trene</h1>
+          </div>
+          <img class="app-icon" src="./assets/icon-192.png" alt="" />
+        </div>
+
+        <div class="streak-row" aria-label="Streak og poeng">
+          <div>
+            <span class="stat-value" id="streakDays">0</span>
+            <span class="stat-label">dagers streak</span>
+          </div>
+          <div>
+            <span class="stat-value" id="xpTotal">0</span>
+            <span class="stat-label">XP</span>
+          </div>
+          <div>
+            <span class="stat-value" id="bestPushups">15</span>
+            <span class="stat-label">beste pushups</span>
+          </div>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-copy">
+            <span>Mål: 100 reps</span>
+            <strong id="goalPercent">15%</strong>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="goalFill"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="daily-card" aria-labelledby="todayWorkoutTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Dagens oppdrag</p>
+            <h2 id="todayWorkoutTitle">Klar?</h2>
+          </div>
+          <button class="icon-button" id="settingsButton" type="button" aria-label="Innstillinger">
+            <span aria-hidden="true">⚙</span>
+          </button>
+        </div>
+
+        <div class="exercise-list" id="exerciseList"></div>
+
+        <button class="primary-button" id="completeButton" type="button">Fullfør økten</button>
+        <p class="hint" id="dailyHint">Gjør økten rolig og med god teknikk.</p>
+      </section>
+
+      <section class="badge-strip" aria-label="Merker">
+        <div class="badge" id="badgeFirst">Første økt</div>
+        <div class="badge" id="badgeWeek">7 dager</div>
+        <div class="badge" id="badgeFifty">50 reps</div>
+        <div class="badge" id="badgeHundred">100 reps</div>
+      </section>
+
+      <nav class="tab-bar" aria-label="Visninger">
+        <button class="tab is-active" type="button" data-tab="home">I dag</button>
+        <button class="tab" type="button" data-tab="history">Logg</button>
+        <button class="tab" type="button" data-tab="plan">Plan</button>
+      </nav>
+
+      <section class="panel is-active" id="homePanel">
+        <div class="mini-grid">
+          <article class="mini-card">
+            <span>Pushups neste mål</span>
+            <strong id="nextPushGoal">16</strong>
+          </article>
+          <article class="mini-card">
+            <span>Situps-status</span>
+            <strong id="situpStatus">Test</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" id="historyPanel">
+        <div class="section-heading tight">
+          <h2>Logg</h2>
+          <button class="text-button" id="exportButton" type="button">Eksporter</button>
+        </div>
+        <ol class="history-list" id="historyList"></ol>
+      </section>
+
+      <section class="panel" id="planPanel">
+        <div class="plan-copy">
+          <h2>Plan mot 100</h2>
+          <p>Øk bare når økten føles kontrollert. Appen foreslår små steg, og tar en lettere dag hver sjuende dag.</p>
+        </div>
+        <div class="milestones" id="milestones"></div>
+      </section>
+    </main>
+
+    <dialog class="settings-dialog" id="settingsDialog">
+      <form method="dialog" class="settings-form">
+        <div class="section-heading tight">
+          <h2>Innstillinger</h2>
+          <button class="icon-button" value="cancel" aria-label="Lukk" type="submit">×</button>
+        </div>
+        <label>
+          Navn
+          <input id="nameInput" type="text" autocomplete="given-name" maxlength="24" />
+        </label>
+        <label>
+          Pushups nå, per sett
+          <input id="pushBaseInput" type="number" inputmode="numeric" min="1" max="100" />
+        </label>
+        <label>
+          Situps nå, per sett
+          <input id="situpBaseInput" type="number" inputmode="numeric" min="0" max="100" />
+        </label>
+        <label>
+          Antall sett
+          <input id="setsInput" type="number" inputmode="numeric" min="1" max="5" />
+        </label>
+        <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Lagre</button>
+      </form>
+    </dialog>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

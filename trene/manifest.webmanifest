@@ -1,0 +1,22 @@
+{
+  "name": "Trene med William",
+  "short_name": "Trene",
+  "description": "Daglig pushups- og situps-trening med streaks og progresjon mot 100 reps.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f2",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
