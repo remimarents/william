@@ -518,6 +518,13 @@ function normalizeEntry(entry) {
   const targetSit = entry.targets?.situpsPerSet || entry.situpsPerSet || 0;
   const targetPushTotal = entry.targets?.pushupsTotal || targetPush * sets;
   const targetSitTotal = entry.targets?.situpsTotal || targetSit * sets;
+  const normalizedPhoto = typeof entry.photo === "string"
+    ? {
+        dataUrl: entry.photo,
+        label: entry.workoutNumber ? `Økt ${entry.workoutNumber}` : "Bilde",
+        workoutNumber: entry.workoutNumber || 0
+      }
+    : entry.photo || null;
   return {
     ...entry,
     sets,
@@ -535,7 +542,7 @@ function normalizeEntry(entry) {
       situpsTotal: entry.actual?.situpsTotal || targetSitTotal
     },
     effort: entry.effort || "passe",
-    photo: entry.photo || null
+    photo: normalizedPhoto
   };
 }
 
@@ -744,11 +751,29 @@ function supportText(mainSet, support) {
 
 function renderPhotoCheckin() {
   const nextWorkout = state.history.length + 1;
-  const isDue = nextWorkout % state.profile.photoEvery === 0;
+  const hasAnyPhoto = allProgressPhotos().length > 0;
+  const isStartPhotoDue = !hasAnyPhoto;
+  const isProgressPhotoDue = nextWorkout > 1 && nextWorkout % state.profile.photoEvery === 0;
+  const isDue = isStartPhotoDue || isProgressPhotoDue;
   els.photoCheckin.classList.toggle("is-due", isDue);
   els.photoHint.textContent = state.pendingPhoto
     ? "Bilde er valgt for denne økten."
-    : `Økt ${nextWorkout}: ${isDue ? "ta gjerne et bilde i dag." : `neste bilde ved økt ${Math.ceil(nextWorkout / state.profile.photoEvery) * state.profile.photoEvery}.`}`;
+    : photoCheckinText(nextWorkout, isStartPhotoDue, isProgressPhotoDue);
+}
+
+function photoCheckinText(nextWorkout, isStartPhotoDue, isProgressPhotoDue) {
+  if (isStartPhotoDue) {
+    return "Ta startbilde før eller etter første økt. Bruk samme speil, lys og avstand senere.";
+  }
+  if (isProgressPhotoDue) {
+    return `Økt ${nextWorkout}: ta nytt bilde etter at øvelsene er logget.`;
+  }
+  const nextPhotoWorkout = Math.ceil(nextWorkout / state.profile.photoEvery) * state.profile.photoEvery;
+  return `Neste bilde blir etter økt ${nextPhotoWorkout}.`;
+}
+
+function pendingPhotoLabel(workoutNumber) {
+  return workoutNumber <= 1 && allProgressPhotos().length === 0 ? "Startbilde" : `Økt ${workoutNumber}`;
 }
 
 function renderStats() {
@@ -781,9 +806,9 @@ function allProgressPhotos() {
     .filter((entry) => entry.photo)
     .map((entry, index) => ({
       date: entry.date,
-      workoutNumber: Math.max(1, state.history.length - index),
-      label: `Økt ${Math.max(1, state.history.length - index)}`,
-      dataUrl: entry.photo,
+      workoutNumber: entry.photo?.workoutNumber || entry.workoutNumber || Math.max(1, state.history.length - index),
+      label: entry.photo?.label || `Økt ${entry.photo?.workoutNumber || entry.workoutNumber || Math.max(1, state.history.length - index)}`,
+      dataUrl: typeof entry.photo === "string" ? entry.photo : entry.photo?.dataUrl,
       source: "history"
     }));
 
@@ -795,9 +820,7 @@ function allProgressPhotos() {
 function renderPhotoGallery() {
   const photos = allProgressPhotos();
   const nextWorkout = state.history.length + 1;
-  const nextPhotoWorkout = photos.length === 0
-    ? 0
-    : Math.ceil(nextWorkout / state.profile.photoEvery) * state.profile.photoEvery;
+  const nextPhotoWorkout = Math.ceil(nextWorkout / state.profile.photoEvery) * state.profile.photoEvery;
 
   els.progressPhotoHint.textContent = photos.length === 0
     ? "Last opp startbildet her. Ta bildet i speilet med samme lys og vinkel hver gang."
@@ -1053,6 +1076,7 @@ function completeWorkout() {
   if (completedToday()) return;
 
   const workout = workoutForToday();
+  const workoutNumber = state.history.length + 1;
   const actualPushupsPerSet = clamp(Number(document.querySelector("#actualPushInput")?.value), 0, 200);
   const actualSitupsPerSet = clamp(Number(document.querySelector("#actualSitupInput")?.value), 0, 200);
   const actualPushupsTotal = Math.max(actualPushupsPerSet, clamp(Number(document.querySelector("#actualPushTotalInput")?.value), 0, 300));
@@ -1063,6 +1087,7 @@ function completeWorkout() {
 
   state.history.push({
     date: isoDate(),
+    workoutNumber,
     sets: workout.sets,
     pushupsPerSet: workout.pushupsPerSet,
     situpsPerSet: workout.situpsPerSet,
@@ -1080,7 +1105,13 @@ function completeWorkout() {
       situpsTotal: actualSitupsTotal
     },
     effort: els.effortInput.value,
-    photo: state.pendingPhoto,
+    photo: state.pendingPhoto
+      ? {
+          dataUrl: state.pendingPhoto,
+          label: pendingPhotoLabel(workoutNumber),
+          workoutNumber
+        }
+      : null,
     xp
   });
 
