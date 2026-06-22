@@ -231,21 +231,29 @@
         <button class="text-button" id="testNtfyButton" type="button">Test ntfy</button>
 
         <section class="friend-request">
-          <h3>Kompiser på WB Trene</h3>
-          <p>Hvis en kompis også vil trene, kan han få sin egen brukerkonto med eget opplegg, egen logg og egne mål.</p>
-          <label>
-            Kompisens navn
-            <input id="friendNameInput" type="text" autocomplete="name" maxlength="60" />
-          </label>
-          <label>
-            Ønsket brukernavn
-            <input id="friendUsernameInput" type="text" autocapitalize="none" spellcheck="false" maxlength="40" />
-          </label>
-          <label>
-            E-postadresse til passord
-            <input id="friendEmailInput" type="email" autocomplete="email" maxlength="90" />
-          </label>
-          <button class="text-button" id="requestFriendButton" type="button">Spør om brukerkonto</button>
+          <div class="friend-request__header">
+            <div>
+              <h3>Kompiser på WB Trene</h3>
+              <p>Hvis en kompis også vil trene, kan han få sin egen brukerkonto med eget opplegg, egen logg og egne mål.</p>
+            </div>
+          </div>
+          <p class="friend-request__note">Knappen under spør om navn, ønsket brukernavn og e-postadresse til passord. Deretter åpnes Meldinger/iMessage med ferdig tekst til Remi.</p>
+          <div class="friend-fields" id="friendFields" hidden>
+            <label>
+              Kompisens navn
+              <input id="friendNameInput" type="text" autocomplete="name" maxlength="60" />
+            </label>
+            <label>
+              Ønsket brukernavn
+              <input id="friendUsernameInput" type="text" autocapitalize="none" spellcheck="false" maxlength="40" />
+            </label>
+            <label>
+              E-postadresse til passord
+              <input id="friendEmailInput" type="email" autocomplete="email" maxlength="90" />
+            </label>
+          </div>
+          <p class="friend-status" id="friendRequestStatus" role="status"></p>
+          <button class="text-button" id="requestFriendButton" type="button" aria-expanded="false" aria-controls="friendFields">Be om konto til kompis</button>
         </section>
 
         <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Lagre</button>

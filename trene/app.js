@@ -78,9 +78,11 @@ const els = {
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
   testNtfyButton: document.querySelector("#testNtfyButton"),
+  friendFields: document.querySelector("#friendFields"),
   friendNameInput: document.querySelector("#friendNameInput"),
   friendUsernameInput: document.querySelector("#friendUsernameInput"),
   friendEmailInput: document.querySelector("#friendEmailInput"),
+  friendRequestStatus: document.querySelector("#friendRequestStatus"),
   requestFriendButton: document.querySelector("#requestFriendButton"),
   badges: {
     first: document.querySelector("#badgeFirst"),
@@ -807,15 +809,31 @@ async function testNtfy() {
 }
 
 function requestFriendAccount() {
+  if (els.friendFields.hidden) {
+    els.friendFields.hidden = false;
+    els.requestFriendButton.setAttribute("aria-expanded", "true");
+    els.requestFriendButton.textContent = "Send forespørsel i Meldinger";
+    els.friendRequestStatus.textContent = "Fyll inn tre felt. Ingenting sendes før Meldinger åpnes og du trykker send.";
+    els.friendNameInput.focus();
+    return;
+  }
+
   const name = els.friendNameInput.value.trim();
   const username = els.friendUsernameInput.value.trim();
   const email = els.friendEmailInput.value.trim();
 
   if (!name || !username || !email) {
-    els.requestFriendButton.textContent = "Fyll ut alt";
+    els.friendRequestStatus.textContent = "Fyll ut navn, brukernavn og e-postadresse først.";
+    els.requestFriendButton.textContent = "Fyll ut alt først";
     window.setTimeout(() => {
-      els.requestFriendButton.textContent = "Spør om brukerkonto";
+      els.requestFriendButton.textContent = "Send forespørsel i Meldinger";
     }, 2200);
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    els.friendRequestStatus.textContent = "Sjekk at e-postadressen ser riktig ut.";
+    els.friendEmailInput.focus();
     return;
   }
 
@@ -829,6 +847,7 @@ function requestFriendAccount() {
     "Han skal ha egen trening, egen logg og egne mål."
   ].join("\n");
 
+  els.friendRequestStatus.textContent = "Åpner Meldinger. Trykk send der for å sende forespørselen.";
   window.location.href = `sms:${FRIEND_REQUEST_PHONE}&body=${encodeURIComponent(body)}`;
 }
 
