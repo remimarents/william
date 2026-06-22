@@ -1,4 +1,4 @@
-const CACHE_NAME = "william-trene-v25";
+const CACHE_NAME = "william-trene-v26";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,7 +9,17 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
-  "./assets/apple-touch-icon.png"
+  "./assets/apple-touch-icon.png",
+  "./assets/exercises/kneboy.jpg",
+  "./assets/exercises/utfall.jpg",
+  "./assets/exercises/planke.jpg",
+  "./assets/exercises/sideplanke.jpg",
+  "./assets/exercises/rygghev.jpg",
+  "./assets/exercises/mountain-climbers.jpg",
+  "./assets/exercises/dips-pa-benk.jpg",
+  "./assets/exercises/hollow-hold.jpg",
+  "./assets/exercises/burpees.jpg",
+  "./assets/exercises/pullups-roing.jpg"
 ];
 
 self.addEventListener("install", (event) => {
