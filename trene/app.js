@@ -657,6 +657,7 @@ function renderFacts() {
     <article class="fact-item">
       <strong>${fact.title}</strong>
       <p>${fact.text}</p>
+      <span class="swipe-hint">Sveip for neste fakta</span>
     </article>
   `).join("");
 }

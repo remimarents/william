@@ -1,9 +1,10 @@
-const CACHE_NAME = "william-trene-v18";
+const CACHE_NAME = "william-trene-v19";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./hjelp.md",
   "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
