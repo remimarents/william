@@ -33,6 +33,9 @@ const els = {
   appShell: document.querySelector("#appShell"),
   loginShell: document.querySelector("#loginShell"),
   loginForm: document.querySelector("#loginForm"),
+  helpPopover: document.querySelector("#helpPopover"),
+  helpPopoverText: document.querySelector("#helpPopoverText"),
+  helpPopoverClose: document.querySelector("#helpPopoverClose"),
   usernameInput: document.querySelector("#usernameInput"),
   passwordInput: document.querySelector("#passwordInput"),
   loginError: document.querySelector("#loginError"),
@@ -462,7 +465,7 @@ function renderExercises(workout) {
 }
 
 function infoButton(message, light = false) {
-  return `<button class="info-button${light ? " info-button--light" : ""}" type="button" title="${message}" aria-label="${message}">?</button>`;
+  return `<button class="info-button${light ? " info-button--light" : ""}" type="button" data-help="${message}" title="${message}" aria-label="${message}">?</button>`;
 }
 
 function supportText(mainSet, support) {
@@ -827,6 +830,27 @@ function switchTab(tabName) {
   });
 }
 
+function showHelp(message) {
+  if (!message) return;
+  els.helpPopoverText.textContent = message;
+  els.helpPopover.hidden = false;
+  window.clearTimeout(showHelp.hideTimer);
+  showHelp.hideTimer = window.setTimeout(hideHelp, 9000);
+}
+
+function hideHelp() {
+  els.helpPopover.hidden = true;
+}
+
+function handleHelpClick(event) {
+  const button = event.target.closest(".info-button");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  showHelp(button.dataset.help || button.title || button.getAttribute("aria-label"));
+}
+
 function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1044,6 +1068,8 @@ els.testNtfyButton.addEventListener("click", testNtfy);
 els.photoInput.addEventListener("change", handlePhotoChange);
 els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
+els.helpPopoverClose.addEventListener("click", hideHelp);
+document.addEventListener("click", handleHelpClick);
 
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => switchTab(tab.dataset.tab));
