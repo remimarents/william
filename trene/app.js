@@ -12,7 +12,8 @@ const defaultState = {
   profile: {
     name: "William",
     pushBase: 15,
-    situpBase: 0,
+    pushTestMax: 29,
+    situpBase: 15,
     sets: 2,
     goal: 100,
     ntfyTopic: DEFAULT_NTFY_TOPIC,
@@ -58,6 +59,8 @@ const els = {
   graphBars: document.querySelector("#graphBars"),
   graphCaption: document.querySelector("#graphCaption"),
   motivationCard: document.querySelector("#motivationCard"),
+  planSummary: document.querySelector("#planSummary"),
+  planPhases: document.querySelector("#planPhases"),
   historyList: document.querySelector("#historyList"),
   milestones: document.querySelector("#milestones"),
   factList: document.querySelector("#factList"),
@@ -68,6 +71,7 @@ const els = {
   saveSettingsButton: document.querySelector("#saveSettingsButton"),
   nameInput: document.querySelector("#nameInput"),
   pushBaseInput: document.querySelector("#pushBaseInput"),
+  pushTestMaxInput: document.querySelector("#pushTestMaxInput"),
   situpBaseInput: document.querySelector("#situpBaseInput"),
   setsInput: document.querySelector("#setsInput"),
   ntfyTopicInput: document.querySelector("#ntfyTopicInput"),
@@ -200,12 +204,22 @@ function loadState() {
 }
 
 function normalizeState(value) {
+  const savedProfile = value.profile || {};
+  const hasSavedPushTestMax = Object.prototype.hasOwnProperty.call(savedProfile, "pushTestMax");
+  const migratedProfile = {
+    ...savedProfile,
+    pushTestMax: hasSavedPushTestMax ? savedProfile.pushTestMax : defaultState.profile.pushTestMax,
+    situpBase: !hasSavedPushTestMax && savedProfile.situpBase === 0
+      ? defaultState.profile.situpBase
+      : savedProfile.situpBase
+  };
+
   return {
     ...structuredClone(defaultState),
     ...value,
     profile: {
       ...defaultState.profile,
-      ...(value.profile || {})
+      ...migratedProfile
     },
     notifications: {
       ...defaultState.notifications,
@@ -284,6 +298,14 @@ function currentStreak() {
 }
 
 function bestPushups() {
+  return Math.max(
+    state.profile.pushBase,
+    state.profile.pushTestMax || 0,
+    ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0)
+  );
+}
+
+function bestControlledPushups() {
   return Math.max(state.profile.pushBase, ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0));
 }
 
@@ -297,13 +319,15 @@ function xpTotal() {
 
 function workoutForToday() {
   const doneCount = state.history.length;
-  const best = bestPushups();
+  const best = bestControlledPushups();
   const isRecovery = doneCount > 0 && (doneCount + 1) % 7 === 0;
   const pushupsPerSet = Math.min(
     state.profile.goal,
-    Math.max(1, isRecovery ? Math.max(state.profile.pushBase, best - 2) : best + (doneCount % 2 === 0 ? 1 : 0))
+    Math.max(1, isRecovery ? Math.max(state.profile.pushBase, best - 2) : best + (doneCount > 0 && doneCount % 2 === 0 ? 1 : 0))
   );
-  const situpsPerSet = state.profile.situpBase > 0 ? Math.min(state.profile.goal, Math.max(state.profile.situpBase, bestSitups() + (doneCount % 3 === 0 ? 1 : 0))) : 0;
+  const situpsPerSet = state.profile.situpBase > 0
+    ? Math.min(state.profile.goal, Math.max(state.profile.situpBase, bestSitups() + (doneCount > 0 && doneCount % 3 === 0 ? 1 : 0)))
+    : 0;
 
   return {
     sets: state.profile.sets,
@@ -341,6 +365,7 @@ function render() {
   renderMotivation(todayWorkout);
   renderCoachFeedback();
   renderHistory();
+  renderPlanOverview(todayWorkout, pushBest);
   renderMilestones(pushBest);
   renderFacts();
 }
@@ -548,6 +573,39 @@ function renderMilestones(pushBest) {
   }).join("");
 }
 
+function renderPlanOverview(workout, pushBest) {
+  const controlledBest = bestControlledPushups();
+  const nextSitups = workout.situpsPerSet || state.profile.situpBase;
+  const formText = state.profile.pushTestMax > controlledBest
+    ? `Testet toppsett er ${state.profile.pushTestMax}, men daglig mål starter lavere for å få dypere og penere reps.`
+    : "Daglig mål følger beste kontrollerte nivå fra loggen.";
+
+  els.planSummary.innerHTML = [
+    ["Testet nåsituasjon", `${state.profile.pushTestMax} pushups`, "Ett sett. De skal bli dypere før planen jager høyere tall."],
+    ["Dagens arbeidsmål", `${workout.sets} × ${workout.pushupsPerSet}`, "Dette er treningsmålet appen foreslår. Faktisk antall kan justeres etterpå."],
+    ["Situps-start", `${workout.sets} × ${nextSitups}`, "Appen går ut fra 15 situps per sett fra start og justerer etter loggen."],
+    ["Mot 100", `${pushBest}/${state.profile.goal}`, formText]
+  ].map(([label, value, text]) => `
+    <article class="plan-stat">
+      <span>${label}</span>
+      <strong>${value}</strong>
+      <p>${text}</p>
+    </article>
+  `).join("");
+
+  els.planPhases.innerHTML = [
+    ["1. Start rolig", "Første mål er å gjøre økten hver dag og holde teknikken ren. Ikke maks ut bare fordi du klarte 29 én gang."],
+    ["2. Registrer ærlig", "Appen bestemmer målet, men du skriver inn faktisk antall. Flere, færre eller pauser er lov så lenge tallet er ærlig."],
+    ["3. Øk kontrollert", "Når nivået er stabilt, øker appen små steg. Hver sjuende økt er litt lettere for å bevare kvalitet."],
+    ["4. Bygg mot 100", "Milepælene viser vei: 30, 50, 75 og 100 gode reps. Dype reps med strak kropp teller mest."]
+  ].map(([title, text]) => `
+    <article class="phase-card">
+      <strong>${title}</strong>
+      <p>${text}</p>
+    </article>
+  `).join("");
+}
+
 function completeWorkout() {
   if (completedToday()) return;
 
@@ -591,6 +649,7 @@ function completeWorkout() {
 function openSettings() {
   els.nameInput.value = state.profile.name;
   els.pushBaseInput.value = state.profile.pushBase;
+  els.pushTestMaxInput.value = state.profile.pushTestMax || 29;
   els.situpBaseInput.value = state.profile.situpBase;
   els.setsInput.value = state.profile.sets;
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
@@ -606,6 +665,7 @@ function saveSettings(event) {
     ...state.profile,
     name: els.nameInput.value.trim() || "William",
     pushBase: clamp(Number(els.pushBaseInput.value), 1, 100),
+    pushTestMax: clamp(Number(els.pushTestMaxInput.value), 1, 100),
     situpBase: clamp(Number(els.situpBaseInput.value), 0, 100),
     sets: clamp(Number(els.setsInput.value), 1, 5),
     ntfyTopic: sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC,
