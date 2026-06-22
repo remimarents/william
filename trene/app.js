@@ -920,10 +920,59 @@ function renderFacts() {
 }
 
 function renderBadges(streak, pushBest) {
-  els.badges.first.classList.toggle("is-earned", state.history.length >= 1);
-  els.badges.week.classList.toggle("is-earned", streak >= 7);
-  els.badges.fifty.classList.toggle("is-earned", pushBest >= 50);
-  els.badges.hundred.classList.toggle("is-earned", pushBest >= 100);
+  const badges = [
+    {
+      el: els.badges.first,
+      icon: "Start",
+      title: "Første økt",
+      description: "Fullfør den første registrerte treningen.",
+      current: Math.min(state.history.length, 1),
+      target: 1,
+      unit: "økt"
+    },
+    {
+      el: els.badges.week,
+      icon: "7",
+      title: "7 dager",
+      description: "Hold streaken i en hel uke.",
+      current: Math.min(streak, 7),
+      target: 7,
+      unit: "dager"
+    },
+    {
+      el: els.badges.fifty,
+      icon: "50",
+      title: "50 reps",
+      description: "Nå 50 i hovedsett for både pushups og situps.",
+      current: Math.min(pushBest, 50),
+      target: 50,
+      unit: "reps"
+    },
+    {
+      el: els.badges.hundred,
+      icon: "100",
+      title: "1 × 100",
+      description: "Sluttmålet: 100 gode reps i ett sett.",
+      current: Math.min(pushBest, 100),
+      target: 100,
+      unit: "reps"
+    }
+  ];
+
+  badges.forEach((badge) => {
+    const earned = badge.current >= badge.target;
+    const progress = Math.min(100, Math.round((badge.current / badge.target) * 100));
+    badge.el.classList.toggle("is-earned", earned);
+    badge.el.setAttribute("aria-label", `${badge.title}: ${earned ? "oppnådd" : `${badge.current} av ${badge.target} ${badge.unit}`}`);
+    badge.el.innerHTML = `
+      <span class="badge-status">${earned ? "Oppnådd" : "Låst"}</span>
+      <span class="badge-icon" aria-hidden="true">${badge.icon}</span>
+      <span class="badge-title">${badge.title}</span>
+      <span class="badge-description">${badge.description}</span>
+      <span class="badge-progress-text">${badge.current}/${badge.target} ${badge.unit}</span>
+      <span class="badge-progress" aria-hidden="true"><span style="width: ${progress}%"></span></span>
+    `;
+  });
 }
 
 function renderHistory() {

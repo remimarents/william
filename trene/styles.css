@@ -528,9 +528,9 @@ h2 {
 
 .badge-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  padding: 4px;
+  padding: 8px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--hairline);
@@ -538,21 +538,90 @@ h2 {
 }
 
 .badge {
-  min-height: 58px;
+  min-height: 148px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f8fafc, #eef2f7);
+  color: #475569;
+  text-align: left;
+  font-size: 0.74rem;
+  font-weight: 900;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.badge-status {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.badge-icon {
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  padding: 8px;
   border-radius: 10px;
-  background: #eef2f7;
-  color: #475569;
-  text-align: center;
-  font-size: 0.75rem;
-  font-weight: 900;
+  background: white;
+  color: var(--dark);
+  font-size: 0.88rem;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.badge-title {
+  color: var(--dark);
+  font-size: 0.95rem;
+}
+
+.badge-description,
+.badge-progress-text {
+  color: var(--muted);
+  line-height: 1.25;
+}
+
+.badge-progress-text {
+  margin-top: 2px;
+  font-size: 0.7rem;
+}
+
+.badge-progress {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.18);
+}
+
+.badge-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #94a3b8;
 }
 
 .badge.is-earned {
-  background: var(--gold);
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
   color: #402800;
+  border-color: rgba(246, 196, 83, 0.48);
+}
+
+.badge.is-earned .badge-status {
+  background: #f6c453;
+  color: #402800;
+}
+
+.badge.is-earned .badge-icon {
+  background: #f6c453;
+  color: #402800;
+}
+
+.badge.is-earned .badge-progress span {
+  background: #f59e0b;
 }
 
 .tab-bar {
