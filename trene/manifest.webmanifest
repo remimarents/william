@@ -1,6 +1,6 @@
 {
-  "name": "Trene med William",
-  "short_name": "Trene",
+  "name": "WB Trene",
+  "short_name": "WB Trene",
   "description": "Daglig pushups- og situps-trening med streaks og progresjon mot 100 reps.",
   "start_url": "./",
   "scope": "./",

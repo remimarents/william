@@ -50,6 +50,8 @@ const els = {
   nextPushGoal: document.querySelector("#nextPushGoal"),
   situpStatus: document.querySelector("#situpStatus"),
   statsGrid: document.querySelector("#statsGrid"),
+  graphBars: document.querySelector("#graphBars"),
+  graphCaption: document.querySelector("#graphCaption"),
   motivationCard: document.querySelector("#motivationCard"),
   historyList: document.querySelector("#historyList"),
   milestones: document.querySelector("#milestones"),
@@ -66,6 +68,10 @@ const els = {
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
   testNtfyButton: document.querySelector("#testNtfyButton"),
+  friendNameInput: document.querySelector("#friendNameInput"),
+  friendUsernameInput: document.querySelector("#friendUsernameInput"),
+  friendEmailInput: document.querySelector("#friendEmailInput"),
+  requestFriendButton: document.querySelector("#requestFriendButton"),
   badges: {
     first: document.querySelector("#badgeFirst"),
     week: document.querySelector("#badgeWeek"),
@@ -335,6 +341,33 @@ function renderStats() {
       <strong>${value}</strong>
     </article>
   `).join("");
+
+  renderGraph(entries);
+}
+
+function renderGraph(entries) {
+  const recent = [...entries].reverse().slice(-10);
+  const max = Math.max(1, ...recent.map((entry) => entry.actual?.pushupsTotal || 0));
+
+  if (!recent.length) {
+    els.graphBars.innerHTML = "";
+    els.graphCaption.textContent = "Fullfør noen økter for å bygge grafen.";
+    return;
+  }
+
+  els.graphBars.innerHTML = recent.map((entry) => {
+    const total = entry.actual?.pushupsTotal || 0;
+    const height = Math.max(10, Math.round((total / max) * 100));
+    const day = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" }).format(dateKeyToLocalDate(entry.date));
+    return `
+      <div class="bar-item">
+        <span class="bar-value">${total}</span>
+        <span class="bar" style="height: ${height}%"></span>
+        <span class="bar-day">${day}</span>
+      </div>
+    `;
+  }).join("");
+  els.graphCaption.textContent = "Grafen viser faktisk antall pushups totalt per fullførte økt.";
 }
 
 function renderMotivation(workout) {
@@ -587,6 +620,32 @@ async function testNtfy() {
   }, 2200);
 }
 
+function requestFriendAccount() {
+  const name = els.friendNameInput.value.trim();
+  const username = els.friendUsernameInput.value.trim();
+  const email = els.friendEmailInput.value.trim();
+
+  if (!name || !username || !email) {
+    els.requestFriendButton.textContent = "Fyll ut alt";
+    window.setTimeout(() => {
+      els.requestFriendButton.textContent = "Spør om brukerkonto";
+    }, 2200);
+    return;
+  }
+
+  const body = [
+    "Hei! Kan du lage en WB Trene-brukerkonto til en kompis?",
+    "",
+    `Navn: ${name}`,
+    `Ønsket brukernavn: ${username}`,
+    `E-post til passord: ${email}`,
+    "",
+    "Han skal ha egen trening, egen logg og egne mål."
+  ].join("\n");
+
+  window.location.href = `sms:&body=${encodeURIComponent(body)}`;
+}
+
 function handlePhotoChange(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -619,6 +678,7 @@ els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
 els.testNtfyButton.addEventListener("click", testNtfy);
 els.photoInput.addEventListener("change", handlePhotoChange);
+els.requestFriendButton.addEventListener("click", requestFriendAccount);
 
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => switchTab(tab.dataset.tab));

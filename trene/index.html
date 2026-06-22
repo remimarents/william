@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0f172a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Trene" />
-    <title>Trene med William</title>
+    <meta name="apple-mobile-web-app-title" content="WB Trene" />
+    <title>WB Trene</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="./styles.css" />
@@ -17,7 +17,7 @@
       <form class="login-card" id="loginForm">
         <img class="login-icon" src="./assets/icon-192.png" alt="" />
         <p class="eyebrow">Privat treningsapp</p>
-        <h1 id="loginTitle">Trene</h1>
+        <h1 id="loginTitle">WB Trene</h1>
         <label>
           Brukernavn
           <input id="usernameInput" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required />
@@ -36,7 +36,7 @@
         <div class="hero__top">
           <div>
             <p class="eyebrow" id="todayLabel">I dag</p>
-            <h1>Trene</h1>
+            <h1>WB Trene</h1>
           </div>
           <img class="app-icon" src="./assets/icon-192.png" alt="" />
         </div>
@@ -121,6 +121,7 @@
       <nav class="tab-bar" aria-label="Visninger">
         <button class="tab is-active" type="button" data-tab="home">I dag</button>
         <button class="tab" type="button" data-tab="history">Logg</button>
+        <button class="tab" type="button" data-tab="stats">Statistikk</button>
         <button class="tab" type="button" data-tab="plan">Plan</button>
       </nav>
 
@@ -135,7 +136,6 @@
             <strong id="situpStatus">Test</strong>
           </article>
         </div>
-        <div class="stats-grid" id="statsGrid"></div>
         <article class="info-card" id="motivationCard"></article>
       </section>
 
@@ -145,6 +145,21 @@
           <button class="text-button" id="exportButton" type="button">Eksporter</button>
         </div>
         <ol class="history-list" id="historyList"></ol>
+      </section>
+
+      <section class="panel" id="statsPanel">
+        <div class="section-heading tight">
+          <h2>Statistikk og grafer</h2>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <article class="chart-card">
+          <div class="section-heading tight">
+            <h3>Pushups per økt</h3>
+            <span class="chart-label">siste 10</span>
+          </div>
+          <div class="bar-chart" id="graphBars" aria-label="Graf over pushups per økt"></div>
+          <p class="hint" id="graphCaption">Fullfør noen økter for å bygge grafen.</p>
+        </article>
       </section>
 
       <section class="panel" id="planPanel">
@@ -191,6 +206,25 @@
           <input id="reminderTimeInput" type="time" />
         </label>
         <button class="text-button" id="testNtfyButton" type="button">Test ntfy</button>
+
+        <section class="friend-request">
+          <h3>Kompiser på WB Trene</h3>
+          <p>Hvis en kompis også vil trene, kan han få sin egen brukerkonto med eget opplegg, egen logg og egne mål.</p>
+          <label>
+            Kompisens navn
+            <input id="friendNameInput" type="text" autocomplete="name" maxlength="60" />
+          </label>
+          <label>
+            Ønsket brukernavn
+            <input id="friendUsernameInput" type="text" autocapitalize="none" spellcheck="false" maxlength="40" />
+          </label>
+          <label>
+            E-postadresse til passord
+            <input id="friendEmailInput" type="email" autocomplete="email" maxlength="90" />
+          </label>
+          <button class="text-button" id="requestFriendButton" type="button">Spør om brukerkonto</button>
+        </section>
+
         <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Lagre</button>
       </form>
     </dialog>
