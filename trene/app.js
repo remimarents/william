@@ -19,7 +19,10 @@ const defaultState = {
     ntfyTopic: DEFAULT_NTFY_TOPIC,
     remindersEnabled: true,
     reminderTime: "19:30",
-    photoEvery: 10
+    photoEvery: 10,
+    syncEnabled: false,
+    syncUrl: "",
+    syncToken: ""
   },
   history: [],
   photos: [],
@@ -97,6 +100,11 @@ const els = {
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
   testNtfyButton: document.querySelector("#testNtfyButton"),
+  syncEnabledInput: document.querySelector("#syncEnabledInput"),
+  syncUrlInput: document.querySelector("#syncUrlInput"),
+  syncTokenInput: document.querySelector("#syncTokenInput"),
+  syncNowButton: document.querySelector("#syncNowButton"),
+  syncStatus: document.querySelector("#syncStatus"),
   friendFields: document.querySelector("#friendFields"),
   friendNameInput: document.querySelector("#friendNameInput"),
   friendUsernameInput: document.querySelector("#friendUsernameInput"),
@@ -426,6 +434,7 @@ function showApp() {
   els.loginShell.classList.add("is-unlocked");
   els.appShell.classList.remove("is-locked");
   els.appShell.removeAttribute("aria-hidden");
+  syncPull({ silent: true });
 }
 
 function showLogin() {
@@ -531,7 +540,9 @@ function normalizeEntry(entry) {
 }
 
 function saveState() {
+  state.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  scheduleSyncPush();
 }
 
 function isoDate(date = new Date()) {
@@ -1088,6 +1099,10 @@ function openSettings() {
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
+  els.syncEnabledInput.checked = Boolean(state.profile.syncEnabled);
+  els.syncUrlInput.value = state.profile.syncUrl || "";
+  els.syncTokenInput.value = state.profile.syncToken || "";
+  els.syncStatus.textContent = syncIsConfigured() ? "Synk er konfigurert." : "Synk er ikke konfigurert.";
   closeCapacityFields();
   els.settingsDialog.showModal();
 }
@@ -1117,7 +1132,10 @@ function saveSettings(event) {
     sets: clamp(Number(els.setsInput.value), 1, 5),
     ntfyTopic: sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC,
     remindersEnabled: els.remindersInput.checked,
-    reminderTime: els.reminderTimeInput.value || "19:30"
+    reminderTime: els.reminderTimeInput.value || "19:30",
+    syncEnabled: els.syncEnabledInput.checked,
+    syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
+    syncToken: els.syncTokenInput.value.trim()
   };
 
   saveState();
@@ -1223,6 +1241,145 @@ function exportData() {
   link.download = `william-trene-${isoDate()}.json`;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function normalizeSyncUrl(value) {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function syncIsConfigured() {
+  return Boolean(state.profile.syncEnabled && state.profile.syncUrl && state.profile.syncToken);
+}
+
+function syncEndpoint() {
+  return `${normalizeSyncUrl(state.profile.syncUrl)}/api/state`;
+}
+
+function syncHeaders() {
+  return {
+    Authorization: `Bearer ${state.profile.syncToken}`,
+    "Content-Type": "application/json"
+  };
+}
+
+function publicStateForSync() {
+  const copy = structuredClone(state);
+  copy.profile = {
+    ...copy.profile,
+    syncToken: ""
+  };
+  return copy;
+}
+
+function setSyncStatus(message) {
+  if (els.syncStatus) els.syncStatus.textContent = message;
+}
+
+function mergeEntries(localEntries, remoteEntries) {
+  const byDate = new Map();
+  localEntries.forEach((entry) => byDate.set(entry.date, entry));
+  remoteEntries.forEach((entry) => byDate.set(entry.date, entry));
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function mergePhotos(localPhotos, remotePhotos) {
+  const byKey = new Map();
+  const keyFor = (photo) => `${photo.date}|${photo.workoutNumber}|${photo.label}`;
+  localPhotos.forEach((photo) => byKey.set(keyFor(photo), photo));
+  remotePhotos.forEach((photo) => byKey.set(keyFor(photo), photo));
+  return [...byKey.values()].sort((a, b) =>
+    a.date.localeCompare(b.date) || Number(a.workoutNumber) - Number(b.workoutNumber)
+  );
+}
+
+function mergeSyncedState(localValue, remoteValue) {
+  const local = normalizeState(localValue);
+  const remote = normalizeState(remoteValue);
+  const localSync = {
+    syncEnabled: local.profile.syncEnabled,
+    syncUrl: local.profile.syncUrl,
+    syncToken: local.profile.syncToken
+  };
+  const remoteIsNewer = Date.parse(remote.updatedAt || "") > Date.parse(local.updatedAt || "");
+
+  return normalizeState({
+    ...local,
+    ...remote,
+    profile: {
+      ...(remoteIsNewer ? remote.profile : local.profile),
+      ...localSync
+    },
+    notifications: local.notifications,
+    history: mergeEntries(local.history, remote.history),
+    photos: mergePhotos(local.photos, remote.photos),
+    updatedAt: new Date().toISOString()
+  });
+}
+
+let syncPushTimer = null;
+
+function scheduleSyncPush() {
+  if (!syncIsConfigured()) return;
+  window.clearTimeout(syncPushTimer);
+  syncPushTimer = window.setTimeout(() => syncPush({ silent: true }), 900);
+}
+
+async function syncPull({ silent = false } = {}) {
+  if (!syncIsConfigured()) return false;
+  try {
+    if (!silent) setSyncStatus("Henter synk...");
+    const response = await fetch(syncEndpoint(), {
+      method: "GET",
+      headers: syncHeaders(),
+      cache: "no-store"
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    if (payload.state) {
+      state = mergeSyncedState(state, payload.state);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+    if (!silent) setSyncStatus("Synk hentet.");
+    return true;
+  } catch {
+    if (!silent) setSyncStatus("Kunne ikke hente synk.");
+    return false;
+  }
+}
+
+async function syncPush({ silent = false } = {}) {
+  if (!syncIsConfigured()) return false;
+  try {
+    if (!silent) setSyncStatus("Sender synk...");
+    const response = await fetch(syncEndpoint(), {
+      method: "PUT",
+      headers: syncHeaders(),
+      body: JSON.stringify({
+        updatedBy: state.profile.name || "William",
+        state: publicStateForSync()
+      })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!silent) setSyncStatus("Synk sendt.");
+    return true;
+  } catch {
+    if (!silent) setSyncStatus("Kunne ikke sende synk.");
+    return false;
+  }
+}
+
+async function syncNow() {
+  els.syncEnabledInput.checked = true;
+  state.profile = {
+    ...state.profile,
+    syncEnabled: true,
+    syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
+    syncToken: els.syncTokenInput.value.trim()
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const pulled = await syncPull();
+  if (pulled) await syncPush();
 }
 
 function sanitizeTopic(value) {
@@ -1429,6 +1586,7 @@ els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
 els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
 els.testNtfyButton.addEventListener("click", testNtfy);
+els.syncNowButton.addEventListener("click", syncNow);
 els.photoInput.addEventListener("change", handlePhotoChange);
 els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);

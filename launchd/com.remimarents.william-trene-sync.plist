@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.remimarents.william-trene-sync</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for/scripts/william-sync-server.mjs</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>SYNC_HOST</key>
+    <string>127.0.0.1</string>
+    <key>SYNC_PORT</key>
+    <string>8787</string>
+    <key>SYNC_TOKEN</key>
+    <string>CHANGE_ME</string>
+    <key>SYNC_ALLOWED_ORIGIN</key>
+    <string>https://remimarents.github.io</string>
+  </dict>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/remimarents/Library/Logs/william-trene-sync.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/remimarents/Library/Logs/william-trene-sync.err.log</string>
+</dict>
+</plist>
