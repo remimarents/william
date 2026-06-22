@@ -152,6 +152,206 @@ const exerciseGuides = {
       "La føttene sprette opp for hver repetisjon.",
       "Fortsette når korsryggen gjør vondt eller teknikken faller."
     ]
+  },
+  kneboy: {
+    title: "Knebøy",
+    image: "./assets/exercises/kneboy.jpg",
+    imageAlt: "Instruksjonsbilde for knebøy.",
+    muscles: "Lår, setemuskler, hofter og kjerne. Ryggen jobber også med å holde overkroppen stabil.",
+    why: "Knebøy gjør programmet mer komplett fordi beina også får trening. Øvelsen bygger styrke, kontroll og arbeidskapasitet uten utstyr.",
+    how: [
+      "Stå med føttene omtrent skulderbredde.",
+      "Hold brystet opp og vekten på hele foten.",
+      "Sett hoften bak og ned som om du skal sette deg.",
+      "La knærne følge samme retning som tærne.",
+      "Press kontrollert opp igjen."
+    ],
+    mistakes: [
+      "Knær faller innover.",
+      "Hælene slipper gulvet.",
+      "Ryggen krummes fordi du mister kontroll.",
+      "Du går fortere ned enn du klarer å kontrollere."
+    ]
+  },
+  utfall: {
+    title: "Utfall",
+    image: "./assets/exercises/utfall.jpg",
+    imageAlt: "Instruksjonsbilde for utfall.",
+    muscles: "Lår, setemuskler, hofter, legger og kjerne. Balansen trenes ekstra fordi ett bein jobber mer av gangen.",
+    why: "Utfall bygger bein og balanse samtidig. Det avslører forskjeller mellom høyre og venstre side og gir god kontrolltrening.",
+    how: [
+      "Stå oppreist og ta et kontrollert steg frem.",
+      "Senk kroppen til begge knær er bøyd.",
+      "Hold fremre kne over foten.",
+      "Press deg tilbake med fremre bein.",
+      "Bytt bein eller gjør samme antall på hver side."
+    ],
+    mistakes: [
+      "Fremre kne faller innover.",
+      "Steget blir så kort at balansen forsvinner.",
+      "Overkroppen kollapser fremover.",
+      "Du dytter fra med bakre bein i stedet for å bruke fremre bein."
+    ]
+  },
+  planke: {
+    title: "Planke",
+    image: "./assets/exercises/planke.jpg",
+    imageAlt: "Instruksjonsbilde for planke.",
+    muscles: "Mage, dype kjernemuskler, skuldre, setemuskler og ryggstabilitet.",
+    why: "Planke gjør pushups og situps bedre fordi kroppen lærer å holde en sterk, rett linje under belastning.",
+    how: [
+      "Legg albuene under skuldrene.",
+      "Strekk beina bakover og stå på tærne.",
+      "Hold kroppen rett fra hode til hæler.",
+      "Stram mage og rumpe lett.",
+      "Pust rolig og stopp før hoften synker."
+    ],
+    mistakes: [
+      "Hoften henger ned.",
+      "Rumpen løftes for høyt.",
+      "Skuldrene trekkes opp mot ørene.",
+      "Du holder for lenge etter at teknikken er borte."
+    ]
+  },
+  sideplanke: {
+    title: "Sideplanke",
+    image: "./assets/exercises/sideplanke.jpg",
+    imageAlt: "Instruksjonsbilde for sideplanke.",
+    muscles: "Skrå magemuskler, side av kjernen, skuldre, hofter og ryggstabilitet.",
+    why: "Sideplanke bygger stabilitet på sidene av kroppen. Det gjør kjernen mer komplett enn bare vanlige situps og planke.",
+    how: [
+      "Ligg på siden med albuen under skulderen.",
+      "Strekk beina og løft hoften fra gulvet.",
+      "Hold kroppen lang og rett.",
+      "Hold samme tid på begge sider.",
+      "Bruk knærne i gulvet hvis full variant blir for tung."
+    ],
+    mistakes: [
+      "Hoften faller ned mot gulvet.",
+      "Kroppen roterer frem eller bak.",
+      "Albuen ligger for langt unna skulderen.",
+      "Du holder pusten."
+    ]
+  },
+  rygghev: {
+    title: "Rygghev",
+    image: "./assets/exercises/rygghev.jpg",
+    imageAlt: "Instruksjonsbilde for rygghev.",
+    muscles: "Korsrygg, setemuskler, bakside kropp og øvre rygg. Nakken jobber med å holde hodet rolig.",
+    why: "Rygghev balanserer mye magearbeid. En sterk bakside gjør kjernen mer robust og kan gjøre holdningen bedre.",
+    how: [
+      "Ligg på magen med hendene lett ved siden av hodet.",
+      "Hold nakken lang og blikket ned.",
+      "Stram setet lett og løft brystet rolig.",
+      "Hold kort på toppen.",
+      "Senk kontrollert ned igjen."
+    ],
+    mistakes: [
+      "Du kaster hodet bakover.",
+      "Du løfter for høyt og mister kontroll.",
+      "Beina spenner så mye at korsryggen kjennes vond.",
+      "Du bruker fart i stedet for muskelkontroll."
+    ]
+  },
+  mountain: {
+    title: "Mountain climbers",
+    image: "./assets/exercises/mountain-climbers.jpg",
+    imageAlt: "Instruksjonsbilde for mountain climbers.",
+    muscles: "Kjerne, hoftebøyere, skuldre, bryst og triceps. Pulsen trenes også.",
+    why: "Mountain climbers kombinerer styrke og kondisjon. Den trener evnen til å holde pushup-posisjon mens beina beveger seg.",
+    how: [
+      "Start i topposisjonen av en pushup.",
+      "Hold hendene under skuldrene.",
+      "Trekk ett kne kontrollert frem mot brystet.",
+      "Sett foten tilbake og bytt bein.",
+      "Hold hoften lav og tempoet så kontrollert at formen holder."
+    ],
+    mistakes: [
+      "Hoften hopper høyt opp og ned.",
+      "Skuldrene havner langt bak hendene.",
+      "Knærne kastes frem uten kontroll.",
+      "Tempoet blir viktigere enn teknikken."
+    ]
+  },
+  dips: {
+    title: "Dips på benk",
+    image: "./assets/exercises/dips-pa-benk.jpg",
+    imageAlt: "Instruksjonsbilde for dips på benk.",
+    muscles: "Triceps, skuldre og bryst. Kjernen jobber for å holde kroppen stabil.",
+    why: "Dips gir ekstra press-styrke som kan hjelpe pushups. Den trener spesielt triceps, som ofte blir begrensende i høye pushup-tall.",
+    how: [
+      "Bruk en stødig benk eller stol.",
+      "Plasser hendene på kanten og flytt hoften litt frem.",
+      "Senk kroppen rolig ved å bøye albuene.",
+      "Press opp igjen uten å låse skuldrene hardt.",
+      "Gjør varianten lettere ved å ha føttene nærmere kroppen."
+    ],
+    mistakes: [
+      "Du går for dypt og irriterer skuldrene.",
+      "Skuldrene trekkes opp mot ørene.",
+      "Benk eller stol er ikke stabil.",
+      "Du bruker sprett i bunnen."
+    ]
+  },
+  hollow: {
+    title: "Hollow hold",
+    image: "./assets/exercises/hollow-hold.jpg",
+    imageAlt: "Instruksjonsbilde for hollow hold.",
+    muscles: "Mage, dype kjernemuskler, hoftebøyere og kroppskontroll gjennom hele forsiden.",
+    why: "Hollow hold bygger sterk magekontroll. Det lærer kroppen å holde spenning, som er nyttig i både situps, pushups og senere mer avanserte øvelser.",
+    how: [
+      "Ligg på ryggen og press korsryggen lett mot gulvet.",
+      "Løft skuldre og bein litt fra gulvet.",
+      "Hold armene over hodet eller langs siden.",
+      "Hold kort og pent.",
+      "Bøy knærne hvis strake bein blir for tungt."
+    ],
+    mistakes: [
+      "Korsryggen slipper gulvet.",
+      "Beina senkes så lavt at du mister spenningen.",
+      "Nakken jobber mer enn magen.",
+      "Du holder for lenge med dårlig form."
+    ]
+  },
+  burpees: {
+    title: "Burpees",
+    image: "./assets/exercises/burpees.jpg",
+    imageAlt: "Instruksjonsbilde for burpees.",
+    muscles: "Bein, bryst, skuldre, triceps, kjerne og kondisjonssystemet.",
+    why: "Burpees gir mye arbeid på kort tid og trener hele kroppen. Den passer best når teknikken i grunnøvelsene allerede sitter.",
+    how: [
+      "Start stående.",
+      "Sett hendene i gulvet.",
+      "Gå eller hopp kontrollert tilbake til plankeposisjon.",
+      "Gå eller hopp føttene frem igjen.",
+      "Reis deg kontrollert. Legg til lite hopp hvis teknikken er god."
+    ],
+    mistakes: [
+      "Du haster så mye at ryggen kollapser.",
+      "Du lander tungt uten kontroll.",
+      "Pushup-delen presses inn selv om den ødelegger formen.",
+      "Du fortsetter etter at pulsen gjør teknikken rotete."
+    ]
+  },
+  roing: {
+    title: "Pullups eller roing",
+    image: "./assets/exercises/pullups-roing.jpg",
+    imageAlt: "Instruksjonsbilde for pullups eller roing.",
+    muscles: "Rygg, lats, biceps, underarmer, bakside skuldre og kjerne.",
+    why: "Pullups eller roing balanserer all press-treningen fra pushups og dips. Trekk-styrke er viktig for skuldre og holdning.",
+    how: [
+      "Bruk en stabil stang, ringer eller solid bordkant.",
+      "Start med strake armer og kontrollerte skuldre.",
+      "Trekk brystet mot stangen eller kanten.",
+      "Senk rolig ned igjen.",
+      "Velg enklere vinkel eller hjelp hvis du ikke klarer gode reps."
+    ],
+    mistakes: [
+      "Utstyret er ikke stabilt nok.",
+      "Du rykker med hoften for å komme opp.",
+      "Skuldrene trekkes ukontrollert opp mot ørene.",
+      "Du senker deg ikke kontrollert."
+    ]
   }
 };
 
