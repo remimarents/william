@@ -235,19 +235,23 @@ function normalizeEntry(entry) {
   const sets = entry.sets || entry.targets?.sets || defaultState.profile.sets;
   const targetPush = entry.targets?.pushupsPerSet || entry.pushupsPerSet || defaultState.profile.pushBase;
   const targetSit = entry.targets?.situpsPerSet || entry.situpsPerSet || 0;
+  const targetPushTotal = entry.targets?.pushupsTotal || targetPush * sets;
+  const targetSitTotal = entry.targets?.situpsTotal || targetSit * sets;
   return {
     ...entry,
     sets,
     targets: {
       sets,
       pushupsPerSet: targetPush,
-      situpsPerSet: targetSit
+      pushupsTotal: targetPushTotal,
+      situpsPerSet: targetSit,
+      situpsTotal: targetSitTotal
     },
     actual: {
       pushupsPerSet: entry.actual?.pushupsPerSet || entry.pushupsPerSet || targetPush,
-      pushupsTotal: entry.actual?.pushupsTotal || (entry.pushupsPerSet || targetPush) * sets,
+      pushupsTotal: entry.actual?.pushupsTotal || targetPushTotal,
       situpsPerSet: entry.actual?.situpsPerSet || entry.situpsPerSet || targetSit,
-      situpsTotal: entry.actual?.situpsTotal || (entry.situpsPerSet || targetSit) * sets
+      situpsTotal: entry.actual?.situpsTotal || targetSitTotal
     },
     effort: entry.effort || "passe",
     photo: entry.photo || null
@@ -299,20 +303,24 @@ function currentStreak() {
   return count;
 }
 
-function bestPushups() {
-  return Math.max(
-    state.profile.pushBase,
-    state.profile.pushTestMax || 0,
-    ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0)
-  );
+function startPushupsTotal() {
+  return state.profile.pushBase * state.profile.sets;
 }
 
-function bestControlledPushups() {
-  return Math.max(state.profile.pushBase, ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0));
+function startSitupsTotal() {
+  return state.profile.situpBase * state.profile.sets;
 }
 
-function bestSitups() {
-  return Math.max(state.profile.situpBase, ...state.history.map((entry) => entry.actual?.situpsPerSet || entry.situpsPerSet || 0));
+function bestPushupsTotal() {
+  return Math.max(startPushupsTotal(), ...state.history.map((entry) => entry.actual?.pushupsTotal || 0));
+}
+
+function bestSitupsTotal() {
+  return Math.max(startSitupsTotal(), ...state.history.map((entry) => entry.actual?.situpsTotal || 0));
+}
+
+function bestMorningPairTotal() {
+  return Math.min(bestPushupsTotal(), bestSitupsTotal());
 }
 
 function xpTotal() {
@@ -321,39 +329,59 @@ function xpTotal() {
 
 function workoutForToday() {
   const doneCount = state.history.length;
-  const best = bestControlledPushups();
   const isRecovery = doneCount > 0 && (doneCount + 1) % 7 === 0;
-  const pushupsPerSet = Math.min(
-    state.profile.goal,
-    Math.max(1, isRecovery ? Math.max(state.profile.pushBase, best - 2) : best + (doneCount > 0 && doneCount % 2 === 0 ? 1 : 0))
-  );
-  const situpsPerSet = state.profile.situpBase > 0
-    ? Math.min(state.profile.goal, Math.max(state.profile.situpBase, bestSitups() + (doneCount > 0 && doneCount % 3 === 0 ? 1 : 0)))
+  const pushupsTotal = nextTotalTarget(startPushupsTotal(), bestPushupsTotal(), doneCount, isRecovery);
+  const situpsTotal = state.profile.situpBase > 0
+    ? nextTotalTarget(startSitupsTotal(), bestSitupsTotal(), doneCount, isRecovery)
     : 0;
+  const pushPlan = splitIntoSets(pushupsTotal);
+  const sitPlan = splitIntoSets(situpsTotal || startSitupsTotal());
 
   return {
-    sets: state.profile.sets,
-    pushupsPerSet,
-    situpsPerSet,
+    sets: pushPlan.sets,
+    pushupsPerSet: pushPlan.perSet,
+    pushupsTotal,
+    situpsPerSet: sitPlan.perSet,
+    situpsTotal,
     isRecovery
+  };
+}
+
+function nextTotalTarget(startTotal, bestTotal, doneCount, isRecovery) {
+  const progressStep = doneCount > 0 && doneCount % 2 === 0 ? 5 : 0;
+  const target = isRecovery
+    ? Math.max(startTotal, bestTotal - 10)
+    : Math.max(startTotal, bestTotal + progressStep);
+  return Math.min(state.profile.goal, target);
+}
+
+function splitIntoSets(total) {
+  const sets = Math.max(
+    state.profile.sets,
+    total <= 40 ? 2 : total <= 65 ? 3 : total <= 85 ? 4 : 5
+  );
+  return {
+    sets,
+    perSet: Math.ceil(total / sets)
   };
 }
 
 function render() {
   const todayWorkout = workoutForToday();
   const streak = currentStreak();
-  const pushBest = bestPushups();
-  const goalProgress = Math.min(100, Math.round((pushBest / state.profile.goal) * 100));
+  const pushBest = bestPushupsTotal();
+  const pairBest = bestMorningPairTotal();
+  const goalProgress = Math.min(100, Math.round((pairBest / state.profile.goal) * 100));
 
   els.todayLabel.textContent = new Intl.DateTimeFormat("no-NO", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
   els.streakDays.textContent = streak;
   els.xpTotal.textContent = xpTotal();
-  els.bestPushups.textContent = pushBest;
+  els.bestPushups.textContent = `${pushBest}/${bestSitupsTotal()}`;
   els.goalPercent.textContent = `${goalProgress}%`;
   els.goalFill.style.width = `${goalProgress}%`;
   els.title.textContent = completedToday() ? "Dagens økt er fullført" : `${state.profile.name}, dagens økt`;
-  els.nextPushGoal.textContent = todayWorkout.pushupsPerSet;
-  els.situpStatus.textContent = state.profile.situpBase > 0 ? todayWorkout.situpsPerSet : "Test";
+  els.nextPushGoal.textContent = todayWorkout.pushupsTotal;
+  els.situpStatus.textContent = state.profile.situpBase > 0 ? todayWorkout.situpsTotal : "Test";
   els.completeButton.disabled = completedToday();
   els.completeButton.textContent = completedToday() ? "Fullført i dag" : "Fullfør økten";
   els.dailyHint.textContent = todayWorkout.isRecovery
@@ -362,13 +390,13 @@ function render() {
 
   renderExercises(todayWorkout);
   renderPhotoCheckin();
-  renderBadges(streak, pushBest);
+  renderBadges(streak, pairBest);
   renderStats();
   renderMotivation(todayWorkout);
   renderCoachFeedback();
   renderHistory();
-  renderPlanOverview(todayWorkout, pushBest);
-  renderMilestones(pushBest);
+  renderPlanOverview(todayWorkout, pairBest);
+  renderMilestones(pairBest);
   renderFacts();
 }
 
@@ -376,14 +404,14 @@ function renderExercises(workout) {
   const exercises = [
     {
       name: "Pushups",
-      detail: `Mål: ${workout.sets} × ${workout.pushupsPerSet}. Juster hvis du tok flere eller færre.`,
-      value: workout.pushupsPerSet,
+      detail: `Mål: ${workout.pushupsTotal} totalt, fordelt som ca. ${workout.sets} × ${workout.pushupsPerSet}. Juster faktisk total etterpå.`,
+      value: workout.pushupsTotal,
       id: "actualPushInput"
     },
     {
       name: "Situps",
-      detail: workout.situpsPerSet > 0 ? `Mål: ${workout.sets} × ${workout.situpsPerSet}` : "Test startnivå: skriv hvor mange du tok i ett kontrollert sett",
-      value: workout.situpsPerSet > 0 ? workout.situpsPerSet : "",
+      detail: workout.situpsTotal > 0 ? `Mål: ${workout.situpsTotal} totalt, fordelt som ca. ${workout.sets} × ${workout.situpsPerSet}` : "Test startnivå: skriv hvor mange du tok totalt",
+      value: workout.situpsTotal > 0 ? workout.situpsTotal : "",
       id: "actualSitupInput"
     }
   ];
@@ -394,7 +422,7 @@ function renderExercises(workout) {
         <span class="exercise-name">${exercise.name}</span>
         <span class="exercise-detail">${exercise.detail}</span>
       </span>
-      <input class="actual-input" id="${exercise.id}" type="number" inputmode="numeric" min="0" max="200" value="${exercise.value}" aria-label="Faktisk ${exercise.name} per sett" />
+      <input class="actual-input" id="${exercise.id}" type="number" inputmode="numeric" min="0" max="200" value="${exercise.value}" aria-label="Faktisk ${exercise.name} totalt" />
     </article>
   `).join("");
 }
@@ -489,16 +517,16 @@ function renderCoachFeedback() {
   const totalWorkouts = state.history.length;
   const pushTotal = todayEntry.actual.pushupsTotal;
   const sitTotal = todayEntry.actual.situpsTotal;
-  const pushBest = bestPushups();
-  const goalGap = Math.max(0, state.profile.goal - pushBest);
+  const pairBest = bestMorningPairTotal();
+  const goalGap = Math.max(0, state.profile.goal - pairBest);
   const fact = coachFactFor(todayEntry, totalWorkouts);
 
   els.feedbackTitle.textContent = "Økten er logget";
   els.feedbackStats.innerHTML = [
     ["I dag", `${pushTotal} pushups${sitTotal ? ` + ${sitTotal} situps` : ""}`],
     ["Streak", `${currentStreak()} dager`],
-    ["Beste sett", `${pushBest}/${state.profile.goal}`],
-    ["Igjen til 100", goalGap]
+    ["Begge øvelser", `${pairBest}/${state.profile.goal}`],
+    ["Igjen til 100+100", goalGap]
   ].map(([label, value]) => `
     <article class="feedback-stat">
       <span>${label}</span>
@@ -512,7 +540,7 @@ function coachFactFor(entry, totalWorkouts) {
   if (entry.effort === "tung") return factDeck[9];
   if (totalWorkouts % 10 === 0) return factDeck[0];
   if (totalWorkouts % 7 === 0) return factDeck[5];
-  if (entry.actual.pushupsTotal < entry.targets.pushupsPerSet * entry.targets.sets) return factDeck[7];
+  if (entry.actual.pushupsTotal < entry.targets.pushupsTotal) return factDeck[7];
   if (totalWorkouts % 5 === 0) return factDeck[10];
   if (totalWorkouts % 3 === 0) return factDeck[8];
   if (totalWorkouts < 5) return factDeck[2];
@@ -555,7 +583,7 @@ function renderHistory() {
     ? history.map((entry) => `
         <li>
           <strong>${formatDate(entry.date)} · ${entry.xp} XP</strong>
-          <span>Mål ${entry.targets.sets} × ${entry.targets.pushupsPerSet}, gjort ${entry.actual.pushupsTotal} pushups${entry.actual.situpsTotal ? ` · ${entry.actual.situpsTotal} situps` : " · situps test senere"} · ${entry.effort}</span>
+          <span>Mål ${entry.targets.pushupsTotal} pushups, gjort ${entry.actual.pushupsTotal}${entry.actual.situpsTotal ? ` · ${entry.actual.situpsTotal} situps` : " · situps test senere"} · ${entry.effort}</span>
         </li>
       `).join("")
     : "<li><strong>Ingen økter ennå</strong><span>Første fullføring starter streaken.</span></li>";
@@ -576,17 +604,17 @@ function renderMilestones(pushBest) {
 }
 
 function renderPlanOverview(workout, pushBest) {
-  const controlledBest = bestControlledPushups();
-  const nextSitups = workout.situpsPerSet || state.profile.situpBase;
-  const formText = state.profile.pushTestMax > controlledBest
-    ? `Testet toppsett er ${state.profile.pushTestMax}, men daglig mål starter lavere for å få dypere og penere reps.`
-    : "Daglig mål følger beste kontrollerte nivå fra loggen.";
+  const pushPlan = `${workout.pushupsTotal} totalt (${workout.sets} × ca. ${workout.pushupsPerSet})`;
+  const sitPlan = `${workout.situpsTotal} totalt (${workout.sets} × ca. ${workout.situpsPerSet})`;
+  const formText = state.profile.pushTestMax >= startPushupsTotal()
+    ? `Han har testet ${state.profile.pushTestMax} i ett sett. Programmet bruker likevel flere sett for å holde dybde, teknikk og daglig gjennomføring.`
+    : "Daglig mål følger beste kontrollerte morgen-total fra loggen.";
 
   els.planSummary.innerHTML = [
-    ["Testet nåsituasjon", `${state.profile.pushTestMax} pushups`, "Ett sett. De skal bli dypere før planen jager høyere tall."],
-    ["Dagens arbeidsmål", `${workout.sets} × ${workout.pushupsPerSet}`, "Dette er treningsmålet appen foreslår. Faktisk antall kan justeres etterpå."],
-    ["Situps-start", `${workout.sets} × ${nextSitups}`, "Appen går ut fra 15 situps per sett fra start og justerer etter loggen."],
-    ["Mot 100", `${pushBest}/${state.profile.goal}`, formText]
+    ["Testet toppsett", `${state.profile.pushTestMax} pushups`, "Ett sett brukes som kapasitetstest, ikke som daglig fasit."],
+    ["Dagens pushups", pushPlan, "Dette er treningsmålet appen foreslår. Faktisk total kan justeres etterpå."],
+    ["Dagens situps", sitPlan, "Målet er samme sluttpunkt: 100 situps totalt hver morgen."],
+    ["Mot 100 + 100", `${pushBest}/${state.profile.goal}`, formText]
   ].map(([label, value, text]) => `
     <article class="plan-stat">
       <span>${label}</span>
@@ -596,10 +624,10 @@ function renderPlanOverview(workout, pushBest) {
   `).join("");
 
   els.planPhases.innerHTML = [
-    ["1. Start rolig", "Første mål er å gjøre økten hver dag og holde teknikken ren. Ikke maks ut bare fordi du klarte 29 én gang."],
-    ["2. Registrer ærlig", "Appen bestemmer målet, men du skriver inn faktisk antall. Flere, færre eller pauser er lov så lenge tallet er ærlig."],
-    ["3. Øk kontrollert", "Når nivået er stabilt, øker appen små steg. Hver sjuende økt er litt lettere for å bevare kvalitet."],
-    ["4. Bygg mot 100", "Milepælene viser vei: 30, 50, 75 og 100 gode reps. Dype reps med strak kropp teller mest."]
+    ["1. Start med volum", "2 × 15 gir samme total som 1 × 30, men mindre teknikkfall. Det er bedre for daglig trening."],
+    ["2. Registrer totalen", "Appen bestemmer målet, men du skriver inn faktisk antall totalt. Pauser og flere sett er lov."],
+    ["3. Øk kontrollert", "Når totalen er stabil, øker appen med små steg. Hver sjuende økt er lettere for å bevare kvalitet."],
+    ["4. Sluttmål", "Målet er 100 pushups og 100 situps hver morgen, gjerne fordelt i 4-5 sett med gode reps."]
   ].map(([title, text]) => `
     <article class="phase-card">
       <strong>${title}</strong>
@@ -612,14 +640,14 @@ function completeWorkout() {
   if (completedToday()) return;
 
   const workout = workoutForToday();
-  const actualPushupsPerSet = clamp(Number(document.querySelector("#actualPushInput")?.value), 0, 200);
-  const actualSitupsPerSet = clamp(Number(document.querySelector("#actualSitupInput")?.value), 0, 200);
+  const actualPushupsTotal = clamp(Number(document.querySelector("#actualPushInput")?.value), 0, 200);
+  const actualSitupsTotal = clamp(Number(document.querySelector("#actualSitupInput")?.value), 0, 200);
+  const actualPushupsPerSet = Math.round(actualPushupsTotal / workout.sets);
+  const actualSitupsPerSet = Math.round(actualSitupsTotal / workout.sets);
   const streakBefore = currentStreak();
-  const actualPushupsTotal = actualPushupsPerSet * workout.sets;
-  const actualSitupsTotal = actualSitupsPerSet * workout.sets;
-  const targetPushupsTotal = workout.pushupsPerSet * workout.sets;
+  const targetPushupsTotal = workout.pushupsTotal;
   const hitTargetBonus = actualPushupsTotal >= targetPushupsTotal ? 10 : 0;
-  const xp = 20 + Math.min(30, actualPushupsPerSet) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
+  const xp = 20 + Math.min(30, Math.round(actualPushupsTotal / 2)) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
 
   state.history.push({
     date: isoDate(),
@@ -629,7 +657,9 @@ function completeWorkout() {
     targets: {
       sets: workout.sets,
       pushupsPerSet: workout.pushupsPerSet,
-      situpsPerSet: workout.situpsPerSet
+      pushupsTotal: workout.pushupsTotal,
+      situpsPerSet: workout.situpsPerSet,
+      situpsTotal: workout.situpsTotal
     },
     actual: {
       pushupsPerSet: actualPushupsPerSet,
