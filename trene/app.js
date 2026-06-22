@@ -703,7 +703,7 @@ function renderExercises(workout) {
       <span>
         <span class="exercise-title-row">
           <span class="exercise-name">${exercise.name}</span>
-          <button class="exercise-guide-button" type="button" data-exercise-guide="${exercise.key}" aria-label="Åpne øvelsesguide for ${exercise.name}">i</button>
+          <button class="exercise-guide-button" type="button" data-exercise-guide="${exercise.key}" aria-label="Åpne instruksjon for ${exercise.name}">Instruksjon</button>
         </span>
         <span class="exercise-detail">${exercise.detail}</span>
       </span>
