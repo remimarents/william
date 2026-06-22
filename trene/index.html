@@ -44,21 +44,21 @@
         <div class="streak-row" aria-label="Streak og poeng">
           <div>
             <span class="stat-value" id="streakDays">0</span>
-            <span class="stat-label">dagers streak</span>
+            <span class="stat-label">dagers streak <button class="info-button info-button--light" type="button" title="Streak er hvor mange dager på rad økten er fullført." aria-label="Streak er hvor mange dager på rad økten er fullført.">?</button></span>
           </div>
           <div>
             <span class="stat-value" id="xpTotal">0</span>
-            <span class="stat-label">XP</span>
+            <span class="stat-label">XP <button class="info-button info-button--light" type="button" title="XP er poeng for gjennomføring, måloppnåelse og streak. Det er motivasjon, ikke et mål i seg selv." aria-label="XP er poeng for gjennomføring, måloppnåelse og streak.">?</button></span>
           </div>
           <div>
             <span class="stat-value" id="bestPushups">29/15</span>
-            <span class="stat-label">beste hovedsett</span>
+            <span class="stat-label">beste hovedsett <button class="info-button info-button--light" type="button" title="Beste hovedsett viser beste første sett: pushups/situps. Det er dette som bygges mot 1 × 100." aria-label="Beste hovedsett viser beste første sett: pushups/situps.">?</button></span>
           </div>
         </div>
 
         <div class="progress-block">
           <div class="progress-copy">
-            <span>Mål: 1 × 100</span>
+            <span>Mål: 1 × 100 <button class="info-button info-button--light" type="button" title="Sluttmålet er ett sammenhengende sett på 100 gode reps. Støtte-sett brukes bare underveis." aria-label="Sluttmålet er ett sammenhengende sett på 100 gode reps.">?</button></span>
             <strong id="goalPercent">15%</strong>
           </div>
           <div class="progress-track" aria-hidden="true">
@@ -88,6 +88,7 @@
         <div class="effort-row">
           <label>
             Hvordan føltes økten?
+            <button class="info-button" type="button" title="Dette hjelper appen og coach-teksten å skille mellom lette, passe og tunge dager." aria-label="Forklaring av hvordan økten føltes.">?</button>
             <select id="effortInput">
               <option value="lett">Lett</option>
               <option value="passe" selected>Passe</option>
@@ -99,6 +100,7 @@
         <div class="photo-checkin" id="photoCheckin">
           <div>
             <strong>Bilde-sjekk</strong>
+            <button class="info-button" type="button" title="Bilder gjør fremgang synlig over tid. Ta samme vinkel og lys hver gang." aria-label="Forklaring av bilde-sjekk.">?</button>
             <span id="photoHint">Hver 10. økt kan du ta et bilde for å se fremgang.</span>
           </div>
           <label class="text-button photo-button">
@@ -160,12 +162,12 @@
 
       <section class="panel" id="statsPanel">
         <div class="section-heading tight">
-          <h2>Statistikk og grafer</h2>
+          <h2>Statistikk og grafer <button class="info-button" type="button" title="Statistikk viser både gjennomføring, total treningsmengde og fremgang i hovedsettet." aria-label="Forklaring av statistikk og grafer.">?</button></h2>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
         <article class="chart-card">
           <div class="section-heading tight">
-            <h3>Pushups per økt</h3>
+            <h3>Pushups per økt <button class="info-button" type="button" title="Grafen følger hovedsettet, fordi målet er 1 × 100." aria-label="Forklaring av pushups-grafen.">?</button></h3>
             <span class="chart-label">siste 10</span>
           </div>
           <div class="bar-chart" id="graphBars" aria-label="Graf over pushups per økt"></div>
@@ -174,7 +176,7 @@
         <article class="photo-progress-card">
           <div class="section-heading tight">
             <div>
-              <h3>Bilder fra speilet</h3>
+              <h3>Bilder fra speilet <button class="info-button" type="button" title="Startbilde og bilder hver 10. økt gjør det lettere å se endring over tid." aria-label="Forklaring av bilder fra speilet.">?</button></h3>
               <p class="hint">Last opp startbilde og nytt bilde hver 10. økt.</p>
             </div>
           </div>
@@ -190,7 +192,7 @@
       <section class="panel" id="planPanel">
         <div class="plan-copy">
           <h2>Plan mot 100</h2>
-          <p>Planen bygger mot ett sammenhengende sett på 100. Støtte-sett brukes underveis for å bygge kapasitet, men hovedsettet er tallet som teller mot målet.</p>
+          <p>Planen bygger mot ett sammenhengende sett på 100. <button class="info-button" type="button" title="Hovedsettet er første sett. Støtte-sett kommer etter pause og bygger kapasitet." aria-label="Forklaring av hovedsett og støtte-sett.">?</button> Støtte-sett brukes underveis for å bygge kapasitet, men hovedsettet er tallet som teller mot målet.</p>
         </div>
         <div class="plan-summary" id="planSummary"></div>
         <div class="plan-phases" id="planPhases"></div>
@@ -214,24 +216,29 @@
           Navn
           <input id="nameInput" type="text" autocomplete="given-name" maxlength="24" />
         </label>
-        <label>
-          Pushups startmål, per sett
-          <input id="pushBaseInput" type="number" inputmode="numeric" min="1" max="100" />
-        </label>
-        <label>
-          Testet toppsett pushups
-          <input id="pushTestMaxInput" type="number" inputmode="numeric" min="1" max="100" />
-        </label>
-        <label>
-          Situps startmål, per sett
-          <input id="situpBaseInput" type="number" inputmode="numeric" min="0" max="100" />
-        </label>
-        <label>
-          Antall sett
-          <input id="setsInput" type="number" inputmode="numeric" min="1" max="5" />
-        </label>
+        <button class="text-button" id="toggleCapacityButton" type="button" aria-expanded="false" aria-controls="capacityFields">Endre startnivå</button>
+        <section class="capacity-fields" id="capacityFields" hidden>
+          <p>Startnivå er allerede satt opp. Endre bare hvis tallene var feil.</p>
+          <label>
+            Pushups startmål, per sett
+            <input id="pushBaseInput" type="number" inputmode="numeric" min="1" max="100" />
+          </label>
+          <label>
+            Testet toppsett pushups
+            <input id="pushTestMaxInput" type="number" inputmode="numeric" min="1" max="100" />
+          </label>
+          <label>
+            Situps startmål, per sett
+            <input id="situpBaseInput" type="number" inputmode="numeric" min="0" max="100" />
+          </label>
+          <label>
+            Antall sett
+            <input id="setsInput" type="number" inputmode="numeric" min="1" max="5" />
+          </label>
+        </section>
         <label>
           ntfy topic
+          <button class="info-button" type="button" title="Dette er kanalen ntfy bruker for treningspåminnelser. Ikke del den unødvendig." aria-label="Forklaring av ntfy topic.">?</button>
           <input id="ntfyTopicInput" type="text" autocapitalize="none" spellcheck="false" />
         </label>
         <label class="check-label">
@@ -240,6 +247,7 @@
         </label>
         <label>
           Påminnelse kl.
+          <button class="info-button" type="button" title="Tidspunktet Mac mini-tjenesten/ntfy bruker for å minne om økten hvis den ikke er gjort." aria-label="Forklaring av påminnelsestidspunkt.">?</button>
           <input id="reminderTimeInput" type="time" />
         </label>
         <button class="text-button" id="testNtfyButton" type="button">Test ntfy</button>

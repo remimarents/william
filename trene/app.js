@@ -74,6 +74,8 @@ const els = {
   settingsDialog: document.querySelector("#settingsDialog"),
   saveSettingsButton: document.querySelector("#saveSettingsButton"),
   nameInput: document.querySelector("#nameInput"),
+  toggleCapacityButton: document.querySelector("#toggleCapacityButton"),
+  capacityFields: document.querySelector("#capacityFields"),
   pushBaseInput: document.querySelector("#pushBaseInput"),
   pushTestMaxInput: document.querySelector("#pushTestMaxInput"),
   situpBaseInput: document.querySelector("#situpBaseInput"),
@@ -447,16 +449,20 @@ function renderExercises(workout) {
       </span>
       <span class="exercise-inputs">
         <label>
-          Hovedsett
+          Hovedsett ${infoButton("Hovedsett er første sammenhengende sett. Dette tallet teller mot 1 x 100.")}
           <input class="actual-input" id="${exercise.mainId}" type="number" inputmode="numeric" min="0" max="200" value="${exercise.mainValue}" aria-label="Faktisk ${exercise.name} i hovedsett" />
         </label>
         <label>
-          Totalt
+          Totalt ${infoButton("Totalt er hovedsett pluss støtte-sett. Det viser treningsmengde, men teller ikke som 1 x 100.")}
           <input class="actual-input" id="${exercise.totalId}" type="number" inputmode="numeric" min="0" max="300" value="${exercise.totalValue}" aria-label="Faktisk ${exercise.name} totalt" />
         </label>
       </span>
     </article>
   `).join("");
+}
+
+function infoButton(message, light = false) {
+  return `<button class="info-button${light ? " info-button--light" : ""}" type="button" title="${message}" aria-label="${message}">?</button>`;
 }
 
 function supportText(mainSet, support) {
@@ -482,13 +488,13 @@ function renderStats() {
   const photos = allProgressPhotos().length;
 
   els.statsGrid.innerHTML = [
-    ["Siste 7 dager", `${doneLast7}/7`],
-    ["Pushups totalt", pushTotal],
-    ["Situps totalt", sitTotal],
-    ["Bilder lagret", photos]
-  ].map(([label, value]) => `
+    ["Siste 7 dager", `${doneLast7}/7`, "Hvor mange av de siste sju dagene som er fullført."],
+    ["Pushups totalt", pushTotal, "All registrert pushup-mengde, inkludert støtte-sett."],
+    ["Situps totalt", sitTotal, "All registrert situp-mengde, inkludert støtte-sett."],
+    ["Bilder lagret", photos, "Startbilde og fremgangsbilder fra speilet."]
+  ].map(([label, value, help]) => `
     <article class="stat-card">
-      <span>${label}</span>
+      <span>${label} ${infoButton(help)}</span>
       <strong>${value}</strong>
     </article>
   `).join("");
@@ -693,13 +699,13 @@ function renderPlanOverview(workout, pushBest) {
     : "Daglig mål følger beste kontrollerte hovedsett fra loggen.";
 
   els.planSummary.innerHTML = [
-    ["Testet toppsett", `${state.profile.pushTestMax} pushups`, "Ett sett brukes som kapasitetstest, ikke som daglig fasit."],
-    ["Dagens pushups", pushPlan, "Første tallet er hovedsettet. Støtte-sett bygger volum etter pause."],
-    ["Dagens situps", sitPlan, "Samme modell: ett hovedsett som gradvis bygges mot 100."],
-    ["Mot 1x100", `${pushBest}/${state.profile.goal}`, formText]
-  ].map(([label, value, text]) => `
+    ["Testet toppsett", `${state.profile.pushTestMax} pushups`, "Ett sett brukes som kapasitetstest, ikke som daglig fasit.", "Beste test i ett sett. Daglig mål kan ligge lavere hvis teknikken skal bli bedre."],
+    ["Dagens pushups", pushPlan, "Første tallet er hovedsettet. Støtte-sett bygger volum etter pause.", "Eksempel: 1 x 24 + 2 x 12 betyr ett hovedsett på 24 og to støtte-sett."],
+    ["Dagens situps", sitPlan, "Samme modell: ett hovedsett som gradvis bygges mot 100.", "Situps følger samme modell som pushups."],
+    ["Mot 1x100", `${pushBest}/${state.profile.goal}`, formText, "Fremdriften styres av svakeste hovedsett av pushups og situps."]
+  ].map(([label, value, text, help]) => `
     <article class="plan-stat">
-      <span>${label}</span>
+      <span>${label} ${infoButton(help)}</span>
       <strong>${value}</strong>
       <p>${text}</p>
     </article>
@@ -768,7 +774,21 @@ function openSettings() {
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
+  closeCapacityFields();
   els.settingsDialog.showModal();
+}
+
+function closeCapacityFields() {
+  els.capacityFields.hidden = true;
+  els.toggleCapacityButton.setAttribute("aria-expanded", "false");
+  els.toggleCapacityButton.textContent = "Endre startnivå";
+}
+
+function toggleCapacityFields() {
+  const willOpen = els.capacityFields.hidden;
+  els.capacityFields.hidden = !willOpen;
+  els.toggleCapacityButton.setAttribute("aria-expanded", String(willOpen));
+  els.toggleCapacityButton.textContent = willOpen ? "Skjul startnivå" : "Endre startnivå";
 }
 
 function saveSettings(event) {
@@ -788,6 +808,7 @@ function saveSettings(event) {
 
   saveState();
   els.settingsDialog.close();
+  closeCapacityFields();
   sendReminderConfig();
   render();
 }
@@ -1016,6 +1037,7 @@ els.completeButton.addEventListener("click", completeWorkout);
 els.loginForm.addEventListener("submit", handleLogin);
 els.logoutButton.addEventListener("click", logout);
 els.settingsButton.addEventListener("click", openSettings);
+els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
 els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
 els.testNtfyButton.addEventListener("click", testNtfy);

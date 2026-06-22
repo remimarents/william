@@ -304,6 +304,7 @@ h2 {
 }
 
 .icon-button,
+.info-button,
 .tab,
 .text-button {
   min-height: 44px;
@@ -312,6 +313,30 @@ h2 {
   background: white;
   color: var(--ink);
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+.info-button {
+  width: 20px;
+  min-height: 20px;
+  display: inline-grid;
+  place-items: center;
+  margin-left: 4px;
+  padding: 0;
+  border-radius: 50%;
+  border-color: rgba(15, 23, 42, 0.18);
+  background: #eef2f7;
+  color: var(--muted);
+  box-shadow: none;
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1;
+  vertical-align: 1px;
+}
+
+.info-button--light {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .icon-button {
@@ -391,6 +416,11 @@ h2 {
   gap: 4px;
   font-size: 0.68rem;
   text-align: center;
+}
+
+.exercise-inputs .info-button {
+  margin-left: 2px;
+  transform: translateY(-1px);
 }
 
 .effort-row,
@@ -869,6 +899,26 @@ h2 {
   display: grid;
   gap: 14px;
   padding: 18px;
+}
+
+.capacity-fields {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.capacity-fields[hidden] {
+  display: none;
+}
+
+.capacity-fields p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
 }
 
 .friend-request {
