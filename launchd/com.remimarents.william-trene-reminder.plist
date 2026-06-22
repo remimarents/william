@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.remimarents.william-trene-reminder</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for/scripts/william-reminder.mjs</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NTFY_TOPIC</key>
+    <string>william-trene-wb-8v4k9m2p</string>
+    <key>APP_URL</key>
+    <string>https://remimarents.github.io/william/trene/</string>
+    <key>TZ_NAME</key>
+    <string>Europe/Oslo</string>
+  </dict>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>19</integer>
+    <key>Minute</key>
+    <integer>30</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/remimarents/Library/Logs/william-trene-reminder.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/remimarents/Library/Logs/william-trene-reminder.err.log</string>
+</dict>
+</plist>

@@ -15,7 +15,7 @@ const defaultState = {
     sets: 2,
     goal: 100,
     ntfyTopic: DEFAULT_NTFY_TOPIC,
-    remindersEnabled: false,
+    remindersEnabled: true,
     reminderTime: "19:30",
     photoEvery: 10
   },
@@ -456,7 +456,6 @@ function saveSettings(event) {
 
   saveState();
   els.settingsDialog.close();
-  scheduleReminderIfNeeded();
   render();
 }
 
@@ -548,8 +547,8 @@ function sendCompletionMessage(pushupsTotal, situpsTotal) {
 
   const streak = currentStreak();
   const message = situpsTotal > 0
-    ? `Økt fullført: ${pushupsTotal} pushups og ${situpsTotal} situps. Streak: ${streak} dager.`
-    : `Økt fullført: ${pushupsTotal} pushups. Streak: ${streak} dager.`;
+    ? `Økt fullført ${isoDate()}: ${pushupsTotal} pushups og ${situpsTotal} situps. Streak: ${streak} dager.`
+    : `Økt fullført ${isoDate()}: ${pushupsTotal} pushups. Streak: ${streak} dager.`;
 
   sendNtfy({
     title: "Bra jobbet",
@@ -622,4 +621,3 @@ if (isAuthenticated()) {
 }
 
 render();
-scheduleReminderIfNeeded();
