@@ -163,20 +163,22 @@ Planen kan ha støtte-sett selv om sluttmålet er ett sett. Det er fordi trening
 
 Når målet er nådd på de to første øvelsene, kan WB Trene bygges videre med nye øvelser. Tanken er at pushups og situps fullføres først, slik at vanen, teknikken og `1 x 100`-målet sitter før programmet blir større.
 
-Mulige utvidelser som kan låses opp senere:
+Rekkefølgen under er anbefalt. Først kommer øvelser som gjør teknikk og kroppskontroll bedre, deretter mer krevende styrke og kondisjon.
 
-| Øvelse | Hvorfor den kan være nyttig |
-| --- | --- |
-| Knebøy | Bygger bein, hofter og generell arbeidskapasitet. |
-| Utfall | Trener ett bein om gangen og gir bedre balanse. |
-| Planke | Styrker kjernen og gjør pushups og situps mer stabile. |
-| Sideplanke | Gir sterkere mage og rygg på sidene av kroppen. |
-| Rygghev | Balanserer magearbeidet med mer trening for korsrygg. |
-| Mountain climbers | Kombinerer kjerne, skuldre og puls. |
-| Dips på benk | Gir ekstra trening for triceps, skuldre og press-styrke. |
-| Hollow hold | Bygger sterk magekontroll for stramme, gode repetisjoner. |
-| Burpees | Kan brukes som kondisjon og helkroppsøvelse. |
-| Pullups eller roing | Legger inn trekk-styrke som balanserer all press-treningen. |
+I den designede hjelpesiden har hver øvelse et `i`-ikon som åpner en overlay med tegning og instruksjon.
+
+| Nr. | Øvelse | Hvorfor den kommer her | Kort instruksjon |
+| --- | --- | --- | --- |
+| 1 | Planke | Gir bedre kjerne, pushup-stabilitet og kontroll. | Albuene under skuldrene, rett linje fra hode til hæler, stopp før hoften synker. |
+| 2 | Knebøy | Legger inn bein og hofter uten utstyr. | Føtter omtrent skulderbredde, hofte bak og ned, knær samme vei som tær. |
+| 3 | Rygghev | Balanserer situps med rygg og bakside. | Ligg på magen, løft brystet rolig, senk kontrollert. |
+| 4 | Sideplanke | Styrker sidene av magen og stabiliteten. | Albue under skulder, løft hoften, hold kroppen lang og rett. |
+| 5 | Utfall | Mer balanse og ett-beins styrke etter knebøy. | Steg frem, senk kontrollert, press tilbake med fremre bein. |
+| 6 | Pullups eller roing | Balanserer all press-treningen med trekk-styrke. | Trekk brystet mot stang, bordkant eller ringer, senk rolig. |
+| 7 | Dips på benk | Mer triceps og press-styrke, men krever skulderkontroll. | Hendene på stødig kant, senk litt ned, press rolig opp. |
+| 8 | Hollow hold | Mer avansert magekontroll. | Korsrygg lett mot gulvet, skuldre og bein litt opp, hold kort og pent. |
+| 9 | Mountain climbers | Kombinerer kjerne, skuldre og puls. | Start i pushup-posisjon, trekk ett kne frem, bytt bein kontrollert. |
+| 10 | Burpees | Mest krevende helkropps- og kondisjonsøvelse. | Stå, ned til planke, frem igjen og reis deg kontrollert. |
 
 ## 11. Fakta-siden
 
