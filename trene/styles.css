@@ -381,6 +381,18 @@ h2 {
   background: white;
 }
 
+.exercise-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(58px, 1fr));
+  gap: 8px;
+}
+
+.exercise-inputs label {
+  gap: 4px;
+  font-size: 0.68rem;
+  text-align: center;
+}
+
 .effort-row,
 .photo-checkin,
 .stats-grid,
