@@ -1,16 +1,19 @@
 :root {
   color-scheme: light;
-  --bg: #f7f7f2;
+  --bg: #f3f5f1;
   --ink: #111827;
   --muted: #64748b;
   --panel: #ffffff;
+  --panel-2: #f8fafc;
   --line: rgba(15, 23, 42, 0.12);
   --dark: #0f172a;
   --teal: #16b8a6;
+  --teal-dark: #0f766e;
   --coral: #ff6b5f;
   --gold: #f6c453;
   --green: #22c55e;
   --shadow: 0 18px 45px rgba(15, 23, 42, 0.13);
+  --soft-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -21,7 +24,11 @@
 body {
   margin: 0;
   min-height: 100svh;
-  background: var(--bg);
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    var(--bg);
+  background-size: 28px 28px;
   color: var(--ink);
 }
 
@@ -32,9 +39,9 @@ select {
 }
 
 .app-shell {
-  width: min(100%, 560px);
+  width: min(100%, 480px);
   margin: 0 auto;
-  padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
+  padding: max(14px, env(safe-area-inset-top)) 14px max(22px, env(safe-area-inset-bottom));
 }
 
 .app-shell.is-locked {
@@ -59,10 +66,11 @@ select {
   width: min(100%, 420px);
   display: grid;
   gap: 14px;
-  padding: 22px;
+  padding: 24px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: var(--shadow);
+  box-shadow: 0 26px 70px rgba(15, 23, 42, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.75);
 }
 
 .login-icon {
@@ -84,15 +92,15 @@ select {
 }
 
 .hero {
-  min-height: 340px;
+  min-height: 286px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 28px;
-  padding: 24px;
+  gap: 22px;
+  padding: 22px;
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(22, 184, 166, 0.88), rgba(255, 107, 95, 0.86)),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.78), rgba(22, 184, 166, 0.88) 48%, rgba(255, 107, 95, 0.82)),
     url("./assets/icon-1024.png") center / cover;
   color: white;
   box-shadow: var(--shadow);
@@ -104,7 +112,23 @@ select {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.22);
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.38), transparent 58%),
+    rgba(15, 23, 42, 0.12);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -20px -48px 120px;
+  height: 170px;
+  transform: rotate(-12deg);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.22) 0 10px,
+    transparent 10px 24px
+  );
+  opacity: 0.5;
 }
 
 .hero > * {
@@ -123,16 +147,17 @@ select {
 }
 
 .app-icon {
-  width: 68px;
-  height: 68px;
+  width: 60px;
+  height: 60px;
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
 }
 
 .eyebrow {
   margin: 0 0 6px;
   color: inherit;
-  opacity: 0.78;
+  opacity: 0.82;
   font-size: 0.78rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -147,14 +172,15 @@ p {
 
 h1 {
   margin-bottom: 0;
-  font-size: clamp(3.3rem, 22vw, 5.8rem);
-  line-height: 0.9;
+  font-size: clamp(3rem, 16vw, 4.3rem);
+  line-height: 0.94;
   letter-spacing: 0;
 }
 
 h2 {
   margin-bottom: 0;
-  font-size: 1.35rem;
+  font-size: 1.28rem;
+  line-height: 1.15;
 }
 
 .streak-row {
@@ -177,7 +203,7 @@ h2 {
 }
 
 .stat-value {
-  font-size: 1.55rem;
+  font-size: 1.42rem;
   font-weight: 900;
 }
 
@@ -218,13 +244,19 @@ h2 {
   margin-top: 14px;
 }
 
+.daily-card {
+  margin-top: -18px;
+  position: relative;
+  z-index: 2;
+}
+
 .daily-card,
 .panel {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--soft-shadow);
 }
 
 .section-heading.tight {
@@ -239,6 +271,7 @@ h2 {
   border-radius: 8px;
   background: white;
   color: var(--ink);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
 }
 
 .icon-button {
@@ -246,6 +279,7 @@ h2 {
   display: grid;
   place-items: center;
   font-size: 1.2rem;
+  font-weight: 900;
 }
 
 .toolbar-actions {
@@ -267,8 +301,18 @@ h2 {
   min-height: 72px;
   padding: 12px 14px;
   border-radius: 8px;
-  background: #f8fafc;
+  background: linear-gradient(90deg, rgba(22, 184, 166, 0.08), #f8fafc 26%);
   border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+
+.exercise-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--teal);
 }
 
 .exercise-name {
@@ -293,6 +337,8 @@ h2 {
   min-height: 44px;
   text-align: center;
   font-weight: 950;
+  border-color: rgba(22, 184, 166, 0.32);
+  background: white;
 }
 
 .effort-row,
@@ -310,7 +356,7 @@ h2 {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #ecfeff;
+  background: linear-gradient(135deg, #ecfeff, #f0fdf4);
 }
 
 .photo-checkin.is-due {
@@ -343,9 +389,10 @@ h2 {
   min-height: 54px;
   border: 0;
   border-radius: 8px;
-  background: var(--dark);
+  background: linear-gradient(135deg, var(--dark), #164e63);
   color: white;
   font-weight: 900;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.18);
 }
 
 .primary-button:disabled {
@@ -362,6 +409,10 @@ h2 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+  padding: 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .badge {
@@ -370,7 +421,7 @@ h2 {
   place-items: center;
   padding: 8px;
   border-radius: 8px;
-  background: #e2e8f0;
+  background: #eef2f7;
   color: #475569;
   text-align: center;
   font-size: 0.75rem;
@@ -388,22 +439,24 @@ h2 {
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 6px;
   margin: 16px 0 0;
-  padding: 8px;
+  padding: 7px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(18px);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
 }
 
 .tab {
   font-weight: 900;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  min-height: 42px;
 }
 
 .tab.is-active {
-  background: var(--teal);
+  background: var(--dark);
   border-color: var(--teal);
   color: white;
 }
@@ -428,7 +481,7 @@ h2 {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--panel-2);
 }
 
 .mini-card span {
@@ -461,11 +514,14 @@ h2 {
 .stat-card strong {
   display: block;
   margin-top: 8px;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
 }
 
 .info-card {
-  background: #fff7ed;
+  background:
+    linear-gradient(135deg, rgba(246, 196, 83, 0.2), rgba(255, 255, 255, 0.92)),
+    white;
+  border-color: rgba(246, 196, 83, 0.42);
 }
 
 .info-card p {
@@ -481,6 +537,7 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: white;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
 }
 
 .chart-card h3,
@@ -501,9 +558,12 @@ h2 {
   grid-template-columns: repeat(10, minmax(18px, 1fr));
   gap: 8px;
   align-items: end;
-  padding: 14px 4px 4px;
+  padding: 14px 8px 4px;
   border-radius: 8px;
-  background: #f8fafc;
+  background:
+    linear-gradient(rgba(100, 116, 139, 0.12) 1px, transparent 1px),
+    #f8fafc;
+  background-size: 100% 42px;
   border: 1px solid var(--line);
 }
 
@@ -529,6 +589,7 @@ h2 {
   align-self: end;
   border-radius: 6px 6px 2px 2px;
   background: linear-gradient(180deg, var(--coral), var(--teal));
+  box-shadow: 0 7px 15px rgba(22, 184, 166, 0.22);
 }
 
 .bar-day {
@@ -551,7 +612,7 @@ h2 {
   padding: 12px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: #f8fafc;
+  background: var(--panel-2);
 }
 
 .history-list strong,
@@ -568,6 +629,7 @@ h2 {
 .text-button {
   padding: 0 14px;
   font-weight: 850;
+  background: #f8fafc;
 }
 
 .milestones {
@@ -582,6 +644,8 @@ h2 {
   border-radius: 8px;
   padding: 0;
   box-shadow: var(--shadow);
+  max-height: min(760px, calc(100svh - 28px));
+  overflow: auto;
 }
 
 .settings-dialog::backdrop {
@@ -597,7 +661,9 @@ h2 {
 .friend-request {
   display: grid;
   gap: 12px;
-  background: #f8fafc;
+  background:
+    linear-gradient(135deg, rgba(22, 184, 166, 0.08), rgba(255, 255, 255, 0.94)),
+    #f8fafc;
 }
 
 .friend-request p {
@@ -624,6 +690,7 @@ select {
   color: var(--ink);
   background: white;
   font-size: 1rem;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.03);
 }
 
 .check-label {
@@ -648,6 +715,10 @@ select {
     padding: 16px;
   }
 
+  .hero {
+    min-height: 270px;
+  }
+
   .streak-row {
     gap: 8px;
   }
@@ -661,7 +732,7 @@ select {
   }
 
   .tab {
-    font-size: 0.78rem;
+    font-size: 0.74rem;
   }
 
   .bar-chart {
