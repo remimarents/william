@@ -19,7 +19,7 @@
     <key>SYNC_HOST</key>
     <string>127.0.0.1</string>
     <key>SYNC_PORT</key>
-    <string>8787</string>
+    <string>18787</string>
     <key>SYNC_TOKEN</key>
     <string>CHANGE_ME</string>
     <key>SYNC_ALLOWED_ORIGIN</key>
