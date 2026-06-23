@@ -457,6 +457,14 @@ const factDeck = [
     text: "Vil du ha maks effekt av innsatsen: spis vanlige gode måltider med protein, karbohydrater, frukt/grønt og drikk vann. Trening sender signalet; mat og søvn bygger resultatet."
   },
   {
+    title: "Mursteinsmodellen",
+    text: "Å bygge muskler er litt som å bygge en mur av murstein. Trening er som å dytte eller sparke ned muren der den er svak. Protein og karbohydrater er som å hente flere steiner. Søvn på mer enn 8 timer er når kroppen bygger muren opp igjen litt sterkere."
+  },
+  {
+    title: "Sterkere mur",
+    text: "Når muren er tynn, er den lett å rive litt ned og bygge opp igjen. Derfor kan du bli sterkere fort i starten. Etter hvert blir muren sterkere. Da må du belaste kroppen litt mer for å gi den grunn til å bygge videre. Du blir også bedre til å sparke riktig sted: presse deg hardt nok, holde teknikken og stoppe før du jukser."
+  },
+  {
     title: "Programmet er kartet",
     text: "Å følge programmet er viktig fordi små steg over tid slår tilfeldige maksøkter. Men programmet er ikke sjefen over kroppen. Juster ned når formen eller energien sier fra."
   },
@@ -1188,21 +1196,7 @@ function coachFactFor(entry, totalWorkouts) {
 }
 
 function renderFacts() {
-  const totalWorkouts = state.history.length;
-  const selected = [
-    factDeck[0],
-    factDeck[1],
-    factDeck[2],
-    factDeck[3],
-    totalWorkouts >= 7 ? factDeck[5] : factDeck[4],
-    factDeck[6],
-    factDeck[8],
-    factDeck[9],
-    factDeck[10],
-    factDeck[11]
-  ];
-
-  const factsHtml = selected.map((fact) => `
+  const factsHtml = factDeck.map((fact) => `
     <article class="fact-item">
       <strong>${fact.title}</strong>
       <p>${fact.text}</p>
