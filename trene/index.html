@@ -11,6 +11,33 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="./styles.css" />
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get("reset") !== "1") return;
+
+        Promise.all([
+          "serviceWorker" in navigator
+            ? navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                return Promise.all(registrations.map(function (registration) {
+                  return registration.unregister();
+                }));
+              })
+            : Promise.resolve(),
+          "caches" in window
+            ? caches.keys().then(function (keys) {
+                return Promise.all(keys.map(function (key) {
+                  return caches.delete(key);
+                }));
+              })
+            : Promise.resolve()
+        ]).finally(function () {
+          params.delete("reset");
+          params.set("v", "60");
+          window.location.replace(window.location.pathname + "?" + params.toString());
+        });
+      })();
+    </script>
   </head>
   <body>
     <section class="login-shell" id="loginShell" aria-labelledby="loginTitle">
