@@ -163,7 +163,7 @@ Planen kan ha støtte-sett selv om sluttmålet er ett sett. Det er fordi trening
 
 Når målet er nådd på de to første øvelsene, kan WB Trene bygges videre med nye øvelser. Tanken er at pushups og situps fullføres først, slik at vanen, teknikken og `1 x 100`-målet sitter før programmet blir større.
 
-Rekkefølgen under er anbefalt og matcher bildene i hjelpesiden.
+Du kan også legge til øvelser tidligere ved å trykke på +-knappen i appen.
 
 I den designede hjelpesiden har hver øvelse et `i`-ikon som åpner en overlay med bilde og instruksjon.
 
