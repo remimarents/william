@@ -500,7 +500,6 @@ function showApp() {
   els.loginShell.classList.add("is-unlocked");
   els.appShell.classList.remove("is-locked");
   els.appShell.removeAttribute("aria-hidden");
-  syncPull({ silent: true });
 }
 
 function showLogin() {
@@ -517,13 +516,21 @@ async function handleLogin(event) {
 
   const username = els.usernameInput.value.trim().toLowerCase();
   const password = els.passwordInput.value;
-  const passwordHash = await hashText(password);
+  let passwordHash = "";
+
+  try {
+    passwordHash = await hashText(password);
+  } catch {
+    els.loginError.textContent = "Kunne ikke sjekke passordet. Oppdater siden og prøv igjen.";
+    return;
+  }
 
   if (username === AUTH_USER && passwordHash === AUTH_PASSWORD_HASH) {
     setAuthenticated(username);
-    await startSyncSession(username, password);
     els.passwordInput.value = "";
-    syncPull({ silent: true });
+    startSyncSession(username, password)
+      .then(() => syncPull({ silent: true }))
+      .catch(() => setSyncStatus("Innlogging virker lokalt, men sikkerhetskopi er ikke oppdatert akkurat nå."));
     return;
   }
 
@@ -1475,6 +1482,7 @@ function buildBadges(streak, pairBest) {
 }
 
 function renderBadges(streak, pairBest) {
+  if (!els.badgeDeck) return;
   renderedBadges = buildBadges(streak, pairBest);
   const pages = [renderedBadges.slice(0, 4), renderedBadges.slice(4, 8), renderedBadges.slice(8, 12)];
 
@@ -2402,9 +2410,9 @@ els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
 els.helpPopoverClose.addEventListener("click", hideHelp);
 els.helpPopover.addEventListener("click", handleHelpOverlayClick);
-els.badgeDeck.addEventListener("click", handleBadgeClick);
-els.badgePopoverClose.addEventListener("click", hideBadgeDetails);
-els.badgePopover.addEventListener("click", handleBadgeOverlayClick);
+if (els.badgeDeck) els.badgeDeck.addEventListener("click", handleBadgeClick);
+if (els.badgePopoverClose) els.badgePopoverClose.addEventListener("click", hideBadgeDetails);
+if (els.badgePopover) els.badgePopover.addEventListener("click", handleBadgeOverlayClick);
 els.exerciseGuideClose.addEventListener("click", hideExerciseGuide);
 els.exerciseGuidePopover.addEventListener("click", handleExerciseGuideOverlayClick);
 els.exerciseManagerClose.addEventListener("click", hideExerciseManager);
