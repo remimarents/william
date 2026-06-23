@@ -542,6 +542,11 @@ function normalizePhoto(photo) {
   };
 }
 
+function numberOrFallback(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
 function normalizeEntry(entry) {
   const sets = entry.sets || entry.targets?.sets || defaultState.profile.sets;
   const targetPush = entry.targets?.pushupsPerSet || entry.pushupsPerSet || defaultState.profile.pushBase;
@@ -555,8 +560,28 @@ function normalizeEntry(entry) {
         workoutNumber: entry.workoutNumber || 0
       }
     : entry.photo || null;
+  const legacyExerciseMode = !entry.actual?.exercises;
+  const actualPushMain = numberOrFallback(entry.actual?.pushupsPerSet ?? entry.pushupsPerSet, legacyExerciseMode ? targetPush : 0);
+  const actualPushTotal = numberOrFallback(entry.actual?.pushupsTotal, legacyExerciseMode ? targetPushTotal : actualPushMain);
+  const actualSitMain = numberOrFallback(entry.actual?.situpsPerSet ?? entry.situpsPerSet, legacyExerciseMode ? targetSit : 0);
+  const actualSitTotal = numberOrFallback(entry.actual?.situpsTotal, legacyExerciseMode ? targetSitTotal : actualSitMain);
+  const exercises = { ...(entry.actual?.exercises || {}) };
+  if (legacyExerciseMode || actualPushMain > 0 || actualPushTotal > 0) {
+    exercises.pushups = {
+      main: numberOrFallback(exercises.pushups?.main, actualPushMain),
+      total: numberOrFallback(exercises.pushups?.total, actualPushTotal)
+    };
+  }
+  if (legacyExerciseMode || actualSitMain > 0 || actualSitTotal > 0) {
+    exercises.situps = {
+      main: numberOrFallback(exercises.situps?.main, actualSitMain),
+      total: numberOrFallback(exercises.situps?.total, actualSitTotal)
+    };
+  }
   return {
     ...entry,
+    id: entry.id || `${entry.date || isoDate()}-${entry.workoutNumber || 1}`,
+    updatedAt: entry.updatedAt || entry.date || isoDate(),
     sets,
     targets: {
       sets,
@@ -566,21 +591,11 @@ function normalizeEntry(entry) {
       situpsTotal: targetSitTotal
     },
     actual: {
-      pushupsPerSet: entry.actual?.pushupsPerSet || entry.pushupsPerSet || targetPush,
-      pushupsTotal: entry.actual?.pushupsTotal || targetPushTotal,
-      situpsPerSet: entry.actual?.situpsPerSet || entry.situpsPerSet || targetSit,
-      situpsTotal: entry.actual?.situpsTotal || targetSitTotal,
-      exercises: {
-        ...(entry.actual?.exercises || {}),
-        pushups: {
-          main: entry.actual?.exercises?.pushups?.main || entry.actual?.pushupsPerSet || entry.pushupsPerSet || targetPush,
-          total: entry.actual?.exercises?.pushups?.total || entry.actual?.pushupsTotal || targetPushTotal
-        },
-        situps: {
-          main: entry.actual?.exercises?.situps?.main || entry.actual?.situpsPerSet || entry.situpsPerSet || targetSit,
-          total: entry.actual?.exercises?.situps?.total || entry.actual?.situpsTotal || targetSitTotal
-        }
-      }
+      pushupsPerSet: actualPushMain,
+      pushupsTotal: actualPushTotal,
+      situpsPerSet: actualSitMain,
+      situpsTotal: actualSitTotal,
+      exercises
     },
     effort: entry.effort || "passe",
     photo: normalizedPhoto
@@ -618,7 +633,9 @@ function completedToday() {
 }
 
 function sortedHistory() {
-  return [...state.history].sort((a, b) => b.date.localeCompare(a.date));
+  return [...state.history].sort((a, b) =>
+    b.date.localeCompare(a.date) || String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))
+  );
 }
 
 function currentStreak() {
@@ -656,6 +673,44 @@ function bestMainSetPair() {
 
 function xpTotal() {
   return state.history.reduce((sum, entry) => sum + entry.xp, 0);
+}
+
+function exerciseLabel(key) {
+  return exerciseGuides[key]?.title || key;
+}
+
+function actualExerciseEntries(entry) {
+  const exercises = entry.actual?.exercises || {};
+  return Object.entries(exercises)
+    .filter(([, value]) => Number(value?.main || 0) > 0 || Number(value?.total || 0) > 0)
+    .map(([key, value]) => ({
+      key,
+      name: exerciseLabel(key),
+      main: Number(value.main || 0),
+      total: Number(value.total || 0)
+    }));
+}
+
+function actualExerciseSummary(entry) {
+  const exercises = actualExerciseEntries(entry);
+  if (!exercises.length) return "Ingen øvelser registrert";
+  return exercises.map((exercise) => `${exercise.total} ${exercise.name.toLowerCase()}`).join(" + ");
+}
+
+function actualMainSummary(entry) {
+  const exercises = actualExerciseEntries(entry);
+  if (!exercises.length) return "Ingen hovedsett";
+  return exercises.map((exercise) => `${exercise.name}: ${exercise.main}`).join(" · ");
+}
+
+function activeExerciseTotal(entries) {
+  return entries.reduce((sum, entry) =>
+    sum + actualExerciseEntries(entry).reduce((entrySum, exercise) => entrySum + exercise.total, 0), 0
+  , 0);
+}
+
+function bestActiveExerciseMain() {
+  return Math.max(0, ...state.history.flatMap((entry) => actualExerciseEntries(entry).map((exercise) => exercise.main)));
 }
 
 function workoutForToday() {
@@ -707,6 +762,7 @@ function render() {
   const streak = currentStreak();
   const pushBest = bestPushupsSet();
   const pairBest = bestMainSetPair();
+  const hasExercises = enabledExerciseKeys().length > 0;
   const goalProgress = Math.min(100, Math.round((pairBest / state.profile.goal) * 100));
 
   els.todayLabel.textContent = new Intl.DateTimeFormat("no-NO", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
@@ -718,9 +774,11 @@ function render() {
   els.title.textContent = completedToday() ? "Dagens økt er fullført" : `${state.profile.name}, dagens økt`;
   els.nextPushGoal.textContent = todayWorkout.pushupsPerSet;
   els.situpStatus.textContent = state.profile.situpBase > 0 ? todayWorkout.situpsPerSet : "Test";
-  els.completeButton.disabled = completedToday();
-  els.completeButton.textContent = completedToday() ? "Fullført i dag" : "Fullfør økten";
-  els.dailyHint.textContent = todayWorkout.isRecovery
+  els.completeButton.disabled = completedToday() || !hasExercises;
+  els.completeButton.textContent = completedToday() ? "Fullført i dag" : hasExercises ? "Fullfør økten" : "Velg minst én øvelse";
+  els.dailyHint.textContent = !hasExercises
+    ? "Trykk + for å velge øvelser før økten kan fullføres."
+    : todayWorkout.isRecovery
     ? "Litt lettere dag i dag. Hold streaken, ikke maks ut."
     : "Stopp hvis teknikken faller. Kvalitet teller mer enn fart.";
 
@@ -849,14 +907,14 @@ function renderStats() {
   const entries = sortedHistory();
   const last7 = entries.slice(0, 7);
   const doneLast7 = last7.length;
-  const pushTotal = entries.reduce((sum, entry) => sum + (entry.actual?.pushupsTotal || 0), 0);
-  const sitTotal = entries.reduce((sum, entry) => sum + (entry.actual?.situpsTotal || 0), 0);
+  const allExerciseTotal = activeExerciseTotal(entries);
+  const bestActiveMain = bestActiveExerciseMain();
   const photos = allProgressPhotos().length;
 
   els.statsGrid.innerHTML = [
     ["Siste 7 dager", `${doneLast7}/7`, "Hvor mange av de siste sju dagene som er fullført."],
-    ["Pushups totalt", pushTotal, "All registrert pushup-mengde, inkludert støtte-sett."],
-    ["Situps totalt", sitTotal, "All registrert situp-mengde, inkludert støtte-sett."],
+    ["Aktive øvelser totalt", allExerciseTotal, "All registrert treningsmengde fra øvelsene som er logget."],
+    ["Beste hovedsett", bestActiveMain, "Beste registrerte hovedsett på tvers av øvelser."],
     ["Bilder lagret", photos, "Startbilde og fremgangsbilder fra speilet."]
   ].map(([label, value, help]) => `
     <article class="stat-card">
@@ -1008,18 +1066,16 @@ function renderCoachFeedback() {
   }
 
   const totalWorkouts = state.history.length;
-  const pushTotal = todayEntry.actual.pushupsTotal;
-  const sitTotal = todayEntry.actual.situpsTotal;
-  const pairBest = bestMainSetPair();
-  const goalGap = Math.max(0, state.profile.goal - pairBest);
   const fact = coachFactFor(todayEntry, totalWorkouts);
+  const todayTotal = actualExerciseEntries(todayEntry).reduce((sum, exercise) => sum + exercise.total, 0);
+  const bestToday = Math.max(0, ...actualExerciseEntries(todayEntry).map((exercise) => exercise.main));
 
   els.feedbackTitle.textContent = "Økten er logget";
   els.feedbackStats.innerHTML = [
-    ["I dag", `${pushTotal} pushups${sitTotal ? ` + ${sitTotal} situps` : ""}`],
+    ["I dag", actualExerciseSummary(todayEntry)],
+    ["Beste i dag", bestToday],
     ["Streak", `${currentStreak()} dager`],
-    ["Hovedsett", `${pairBest}/${state.profile.goal}`],
-    ["Igjen til 1x100", goalGap]
+    ["Totalt", todayTotal]
   ].map(([label, value]) => `
     <article class="feedback-stat">
       <span>${label}</span>
@@ -1135,7 +1191,7 @@ function renderHistory() {
     ? history.map((entry) => `
         <li>
           <strong>${formatDate(entry.date)} · ${entry.xp} XP</strong>
-          <span>Hovedsett mål ${entry.targets.pushupsPerSet}, gjort ${entry.actual.pushupsPerSet} pushups${entry.actual.situpsPerSet ? ` · ${entry.actual.situpsPerSet} situps` : " · situps test senere"} · totalt ${entry.actual.pushupsTotal}${entry.actual.situpsTotal ? `/${entry.actual.situpsTotal}` : ""} · ${entry.effort}</span>
+          <span>${actualMainSummary(entry)} · totalt ${actualExerciseSummary(entry)} · ${entry.effort}</span>
         </li>
       `).join("")
     : "<li><strong>Ingen økter ennå</strong><span>Første fullføring starter streaken.</span></li>";
@@ -1159,7 +1215,7 @@ function renderPlanOverview(workout, pushBest) {
   const pushPlan = `1 × ${workout.pushupsPerSet}${workout.pushSupport.sets ? ` + ${workout.pushSupport.sets} × ${workout.pushSupport.reps}` : ""}`;
   const sitPlan = `1 × ${workout.situpsPerSet}${workout.sitSupport.sets ? ` + ${workout.sitSupport.sets} × ${workout.sitSupport.reps}` : ""}`;
   const formText = state.profile.pushTestMax > bestControlledPushupsSet()
-    ? `Han har testet ${state.profile.pushTestMax} i ett sett. Daglig hovedsett starter lavere hvis teknikken må bli dypere.`
+    ? `Du har testet ${state.profile.pushTestMax} i ett sett. Daglig hovedsett starter lavere hvis teknikken må bli dypere.`
     : "Daglig mål følger beste kontrollerte hovedsett fra loggen.";
 
   els.planSummary.innerHTML = [
@@ -1189,7 +1245,8 @@ function renderPlanOverview(workout, pushBest) {
 }
 
 function completeWorkout() {
-  if (completedToday()) return;
+  const activeKeys = enabledExerciseKeys();
+  if (completedToday() || !activeKeys.length) return;
 
   const workout = workoutForToday();
   const workoutNumber = state.history.length + 1;
@@ -1198,12 +1255,17 @@ function completeWorkout() {
   const actualPushupsTotal = Math.max(actualPushupsPerSet, clamp(Number(document.querySelector("#actualPushTotalInput")?.value), 0, 300));
   const actualSitupsTotal = Math.max(actualSitupsPerSet, clamp(Number(document.querySelector("#actualSitupTotalInput")?.value), 0, 300));
   const actualExercises = readActualExercises();
+  const loggedExercises = Object.values(actualExercises);
+  const bestLoggedMain = Math.max(0, ...loggedExercises.map((exercise) => exercise.main || 0));
   const streakBefore = currentStreak();
-  const hitTargetBonus = actualPushupsPerSet >= workout.pushupsPerSet ? 10 : 0;
-  const xp = 20 + Math.min(30, actualPushupsPerSet) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
+  const hitTargetBonus = activeKeys.includes("pushups") && actualPushupsPerSet >= workout.pushupsPerSet ? 10 : 0;
+  const xp = 20 + Math.min(30, bestLoggedMain) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
+  const now = new Date().toISOString();
 
   state.history.push({
+    id: `${isoDate()}-${now}`,
     date: isoDate(),
+    updatedAt: now,
     workoutNumber,
     sets: workout.sets,
     pushupsPerSet: workout.pushupsPerSet,
@@ -1236,7 +1298,7 @@ function completeWorkout() {
   state.pendingPhoto = null;
   saveState();
   render();
-  sendCompletionMessage(actualPushupsTotal, actualSitupsTotal);
+  sendCompletionMessage(actualExercises);
 }
 
 function readActualExercises() {
@@ -1258,6 +1320,7 @@ function openSettings() {
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
+  settingsSnapshot = JSON.stringify(settingsValuesFromInputs());
   setSyncStatus(syncIsConfigured()
     ? "Sikkerhetskopi av treningsdata er oppdatert."
     : "Sikkerhetskopi er ikke koblet til ennå. Logg inn på nytt hvis dette vedvarer.");
@@ -1279,11 +1342,10 @@ function toggleCapacityFields() {
 }
 
 let settingsAutoSaveTimer = null;
+let settingsSnapshot = "";
 
-function persistSettingsFromInputs() {
-  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
-  state.profile = {
-    ...state.profile,
+function settingsValuesFromInputs() {
+  return {
     name: els.nameInput.value.trim() || "William",
     pushBase: clamp(Number(els.pushBaseInput.value), 1, 100),
     pushTestMax: clamp(Number(els.pushTestMaxInput.value), 1, 100),
@@ -1296,6 +1358,18 @@ function persistSettingsFromInputs() {
     syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
     syncToken: state.profile.syncToken || ""
   };
+}
+
+function persistSettingsFromInputs() {
+  const nextProfile = settingsValuesFromInputs();
+  const nextSnapshot = JSON.stringify(nextProfile);
+  if (nextSnapshot === settingsSnapshot) return;
+  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
+  state.profile = {
+    ...state.profile,
+    ...nextProfile
+  };
+  settingsSnapshot = nextSnapshot;
 
   saveState();
   const nextReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
@@ -1585,9 +1659,16 @@ function setSyncStatus(message) {
 
 function mergeEntries(localEntries, remoteEntries) {
   const byDate = new Map();
-  localEntries.forEach((entry) => byDate.set(entry.date, entry));
-  remoteEntries.forEach((entry) => byDate.set(entry.date, entry));
-  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  [...localEntries, ...remoteEntries].forEach((entry) => {
+    const key = entry.date;
+    const existing = byDate.get(key);
+    if (!existing || Date.parse(entry.updatedAt || entry.date || "") >= Date.parse(existing.updatedAt || existing.date || "")) {
+      byDate.set(key, entry);
+    }
+  });
+  return [...byDate.values()].sort((a, b) =>
+    a.date.localeCompare(b.date) || String(a.updatedAt || "").localeCompare(String(b.updatedAt || ""))
+  );
 }
 
 function mergePhotos(localPhotos, remotePhotos) {
@@ -1755,13 +1836,15 @@ function reminderDelay() {
   return `${minutesUntil}m`;
 }
 
-function sendCompletionMessage(pushupsTotal, situpsTotal) {
+function sendCompletionMessage(actualExercises) {
   if (!state.profile.remindersEnabled) return;
 
   const streak = currentStreak();
-  const message = situpsTotal > 0
-    ? `Økt fullført ${isoDate()}: ${pushupsTotal} pushups og ${situpsTotal} situps. Streak: ${streak} dager.`
-    : `Økt fullført ${isoDate()}: ${pushupsTotal} pushups. Streak: ${streak} dager.`;
+  const summary = Object.entries(actualExercises)
+    .filter(([, value]) => Number(value?.total || 0) > 0)
+    .map(([key, value]) => `${value.total} ${exerciseLabel(key).toLowerCase()}`)
+    .join(" og ");
+  const message = `Økt fullført ${isoDate()}: ${summary || "treningsøkten er logget"}. Streak: ${streak} dager.`;
 
   sendNtfy({
     title: "Bra jobbet",

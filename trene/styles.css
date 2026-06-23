@@ -323,15 +323,15 @@ h2 {
 }
 
 .info-button {
-  width: 18px;
-  min-height: 18px;
+  width: 44px;
+  min-height: 44px;
   display: inline-grid;
   place-items: center;
-  margin-left: 4px;
+  margin: -13px -10px -13px -6px;
   padding: 0;
   border-radius: 50%;
-  border-color: rgba(15, 23, 42, 0.12);
-  background: #eef2f7;
+  border-color: transparent;
+  background: radial-gradient(circle, #eef2f7 0 9px, transparent 9.5px);
   color: var(--muted);
   box-shadow: none;
   font-size: 0.68rem;
@@ -341,8 +341,8 @@ h2 {
 }
 
 .info-button--light {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.2);
+  border-color: transparent;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0 9px, transparent 9.5px);
   color: white;
 }
 

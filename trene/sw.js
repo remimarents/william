@@ -1,4 +1,4 @@
-const CACHE_NAME = "william-trene-v52";
+const CACHE_NAME = "william-trene-v53";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
+  "./assets/icon-1024.png",
   "./assets/apple-touch-icon.png",
   "./assets/help/progress-start.jpg",
   "./assets/help/progress-workout-10.jpg",
