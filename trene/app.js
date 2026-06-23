@@ -1488,11 +1488,6 @@ function renderBadges(streak, pairBest) {
             <span class="badge-art-wrap">
               <img class="badge-art" src="${earned ? badge.imageEarned : badge.imageLocked}" alt="" loading="lazy" />
             </span>
-            <span class="badge-status">${earned ? "Oppnådd" : "Låst"}</span>
-            <span class="badge-title">${badge.title}</span>
-            <span class="badge-description">${badge.description}</span>
-            <span class="badge-progress-text">${progressText}</span>
-            <span class="badge-progress" aria-hidden="true"><span style="width: ${progress}%"></span></span>
           </button>
         `;
       }).join("")}
