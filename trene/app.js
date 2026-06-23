@@ -1772,6 +1772,8 @@ function switchTab(tabName) {
 
 function showHelp(message) {
   if (!message) return;
+  const helpHost = els.settingsDialog.open ? els.settingsDialog : document.body;
+  if (els.helpPopover.parentElement !== helpHost) helpHost.appendChild(els.helpPopover);
   els.helpPopoverText.textContent = message;
   els.helpPopover.hidden = false;
   window.clearTimeout(showHelp.hideTimer);
@@ -1780,6 +1782,7 @@ function showHelp(message) {
 
 function hideHelp() {
   els.helpPopover.hidden = true;
+  if (els.helpPopover.parentElement !== document.body) document.body.appendChild(els.helpPopover);
 }
 
 function renderListItems(items) {

@@ -33,7 +33,7 @@
             : Promise.resolve()
         ]).finally(function () {
           params.delete("reset");
-          params.set("v", "64");
+          params.set("v", "66");
           window.location.replace(window.location.pathname + "?" + params.toString());
         });
       })();
@@ -275,17 +275,18 @@
         <label>
           <span class="label-row">
             ntfy topic
-            <button class="info-button" type="button" data-help="Dette er den private ntfy-kanalen Mac mini bruker for treningspåminnelser. Feltet er låst fordi topic skal være fast og ikke deles unødvendig." title="Forklaring av ntfy topic." aria-label="Forklaring av ntfy topic.">?</button>
+            <button class="info-button" type="button" data-help="ntfy er en enkel varslingstjeneste. WB Trene bruker den som en privat kanal mellom appen, Mac mini og telefonen. Appen sender ikke trening via ntfy; ntfy brukes bare til påminnelser og testvarsler. Topic er kanalnavnet Mac mini sender til. Feltet er låst fordi topic skal være fast og ikke deles unødvendig." title="Forklaring av ntfy topic." aria-label="Forklaring av ntfy topic.">?</button>
           </span>
           <input id="ntfyTopicInput" type="text" autocapitalize="none" spellcheck="false" readonly aria-readonly="true" />
         </label>
         <label class="check-label">
           <input id="remindersInput" type="checkbox" />
           Aktiver ntfy-påminnelse
+          <button class="info-button" type="button" data-help="Når dette er aktivert kan Mac mini sjekke om dagens økt er gjort. Hvis økten mangler ved valgt tidspunkt, sendes en ntfy-påminnelse. Hvis økten allerede er lagret, skal det ikke sendes mas." title="Forklaring av ntfy-påminnelse." aria-label="Forklaring av ntfy-påminnelse.">?</button>
         </label>
         <label>
           Påminnelse kl.
-          <button class="info-button" type="button" title="Tidspunktet Mac mini-tjenesten/ntfy bruker for å minne om økten hvis den ikke er gjort." aria-label="Forklaring av påminnelsestidspunkt.">?</button>
+          <button class="info-button" type="button" data-help="Dette er klokkeslettet Mac mini bruker for å sjekke treningen. Eksempel: Hvis tiden står til 19:30 og dagens økt ikke er fullført, sendes en påminnelse via ntfy." title="Forklaring av påminnelsestidspunkt." aria-label="Forklaring av påminnelsestidspunkt.">?</button>
           <input id="reminderTimeInput" type="time" />
         </label>
         <button class="text-button" id="testNtfyButton" type="button">Test ntfy</button>
