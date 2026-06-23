@@ -133,8 +133,8 @@ const els = {
 let state = loadState();
 
 function validExerciseKeys(keys) {
-  const selected = Array.isArray(keys) ? keys.filter((key) => ALL_EXERCISE_KEYS.includes(key)) : [];
-  return selected.length ? [...new Set(selected)] : [...BASE_EXERCISE_KEYS];
+  if (!Array.isArray(keys)) return [...BASE_EXERCISE_KEYS];
+  return [...new Set(keys.filter((key) => ALL_EXERCISE_KEYS.includes(key)))];
 }
 
 function enabledExerciseKeys() {
@@ -741,6 +741,18 @@ function render() {
 function renderExercises(workout) {
   const exercises = enabledExerciseKeys().map((key) => exerciseTargetForToday(key, workout));
 
+  if (!exercises.length) {
+    els.exerciseList.innerHTML = `
+      <article class="exercise-row empty-exercise-row">
+        <span>
+          <span class="exercise-name">Ingen øvelser valgt</span>
+          <span class="exercise-detail">Trykk + eller gå til Innstillinger → Treningsøvelser for å slå på øvelser.</span>
+        </span>
+      </article>
+    `;
+    return;
+  }
+
   els.exerciseList.innerHTML = exercises.map((exercise) => `
     <article class="exercise-row">
       <span>
@@ -904,7 +916,9 @@ function renderPhotoGallery() {
 function renderExerciseGraphs(entries) {
   const exercises = enabledExerciseKeys().map((key) => exerciseStatsConfig(key));
 
-  els.exerciseGraphDeck.innerHTML = exercises.map((exercise) => renderExerciseGraphCard(entries, exercise)).join("");
+  els.exerciseGraphDeck.innerHTML = exercises.length
+    ? exercises.map((exercise) => renderExerciseGraphCard(entries, exercise)).join("")
+    : `<article class="exercise-chart-card"><div class="empty-chart">Ingen øvelser er valgt for statistikk ennå.</div></article>`;
 }
 
 function exerciseStatsConfig(key) {
@@ -1396,10 +1410,6 @@ function handleExerciseManagerChange(event) {
     active.add(key);
   } else {
     active.delete(key);
-  }
-  if (!active.size) {
-    active.add("pushups");
-    if (key === "pushups") toggle.checked = true;
   }
   state.profile.enabledExercises = validExerciseKeys([...active]);
   saveState();

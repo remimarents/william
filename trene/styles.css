@@ -390,6 +390,15 @@ h2 {
   background: var(--teal);
 }
 
+.empty-exercise-row {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.empty-exercise-row::before {
+  background: var(--gold);
+}
+
 .exercise-name {
   display: block;
   font-weight: 850;
