@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile, rename, writeFile } from "node:fs/promises";
+import { createHash, randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 
 const config = {
@@ -8,6 +9,8 @@ const config = {
   port: Number(process.env.SYNC_PORT || 8787),
   token: process.env.SYNC_TOKEN || "",
   defaultUserId: (process.env.SYNC_DEFAULT_USER_ID || "williamberner").toLowerCase(),
+  defaultPasswordHash: process.env.SYNC_PASSWORD_HASH || "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16",
+  sessionTtlMs: Number(process.env.SYNC_SESSION_TTL_MS || 30 * 24 * 60 * 60 * 1000),
   statePath: process.env.SYNC_STATE_PATH || `${process.env.HOME}/.william-trene-sync-state.json`,
   allowedOrigin: process.env.SYNC_ALLOWED_ORIGIN || "https://remimarents.github.io"
 };
@@ -36,12 +39,14 @@ function parseUserTokens() {
 }
 
 const userTokens = parseUserTokens();
+const passwordHashes = new Map([[config.defaultUserId, config.defaultPasswordHash]]);
+const sessions = new Map();
 
 function jsonResponse(response, status, payload) {
   response.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": config.allowedOrigin,
-    "Access-Control-Allow-Methods": "GET,PUT,OPTIONS",
+    "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
     "Access-Control-Allow-Headers": "Authorization,Content-Type,X-WB-User",
     "Cache-Control": "no-store"
   });
@@ -52,9 +57,36 @@ function unauthorized(response) {
   jsonResponse(response, 401, { ok: false, error: "unauthorized" });
 }
 
+function pruneSessions() {
+  const now = Date.now();
+  for (const [token, session] of sessions.entries()) {
+    if (session.expiresAtMs <= now) sessions.delete(token);
+  }
+}
+
+function createSession(userId) {
+  pruneSessions();
+  const token = randomBytes(32).toString("hex");
+  const expiresAtMs = Date.now() + config.sessionTtlMs;
+  sessions.set(token, { userId, expiresAtMs });
+  return {
+    token,
+    expiresAt: new Date(expiresAtMs).toISOString()
+  };
+}
+
+function sha256(value) {
+  return createHash("sha256").update(value, "utf8").digest("hex");
+}
+
 function authorizedUserId(request) {
   const userId = String(request.headers["x-wb-user"] || "").trim().toLowerCase();
   if (!userId) return "";
+
+  const bearer = String(request.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  pruneSessions();
+  const session = sessions.get(bearer);
+  if (session?.userId === userId) return userId;
 
   const token = userTokens.get(userId);
   if (!token) return "";
@@ -103,6 +135,38 @@ async function handleRequest(request, response) {
 
   if (url.pathname === "/health") {
     jsonResponse(response, 200, { ok: true });
+    return;
+  }
+
+  if (url.pathname === "/api/login") {
+    if (request.method !== "POST") {
+      jsonResponse(response, 405, { ok: false, error: "method_not_allowed" });
+      return;
+    }
+
+    const body = await requestBody(request);
+    let parsed;
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      jsonResponse(response, 400, { ok: false, error: "invalid_json" });
+      return;
+    }
+
+    const userId = String(parsed?.username || "").trim().toLowerCase();
+    const passwordHash = sha256(String(parsed?.password || ""));
+    if (!userId || passwordHashes.get(userId) !== passwordHash) {
+      unauthorized(response);
+      return;
+    }
+
+    const session = createSession(userId);
+    jsonResponse(response, 200, {
+      ok: true,
+      userId,
+      sessionToken: session.token,
+      expiresAt: session.expiresAt
+    });
     return;
   }
 

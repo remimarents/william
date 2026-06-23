@@ -59,10 +59,11 @@ Test lokalt:
 
 ```bash
 SYNC_TOKEN="<nøkkel>" node scripts/william-sync-server.mjs
+curl -X POST -H "Content-Type: application/json" -d '{"username":"williamberner","password":"<passord>"}' http://127.0.0.1:18787/api/login
 curl -H "Authorization: Bearer <nøkkel>" -H "X-WB-User: williamberner" http://127.0.0.1:18787/api/state
 curl -H "Authorization: Bearer <nøkkel>" -H "X-WB-User: williamberner" https://william-trene-sync.marents.no/api/state
 ```
 
 Launchd-mal ligger i `launchd/com.remimarents.william-trene-sync.plist`. Bytt `CHANGE_ME` med nøkkelen lokalt før den lastes inn.
 
-I appen er tunnel-URL forhåndsutfylt under `Innstillinger` → `Synkronisering`. Skru på synk, legg inn synk-nøkkelen fra `/Users/remimarents/.william-trene-sync.env`, og trykk `Synk nå`. Serveren krever både bearer-nøkkel og innlogget bruker-id (`X-WB-User`), så nøkkelen er bundet til brukeren `williamberner`.
+I appen er tunnel-URL forhåndsutfylt under `Innstillinger` → `Synkronisering`. Når William logger inn, henter appen automatisk en kortlevd sync-session fra serveren. Den permanente sync-nøkkelen blir værende på Mac mini og trenger ikke limes inn på telefonen.

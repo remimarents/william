@@ -1,6 +1,7 @@
 const STORAGE_KEY = "william-trene-v1";
 const AUTH_KEY = "william-trene-auth-v1";
 const AUTH_USER_KEY = "william-trene-user-v1";
+const SYNC_SESSION_KEY = "william-trene-sync-session-v1";
 const AUTH_USER = "williamberner";
 const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
 const APP_URL = "https://remimarents.github.io/william/trene/";
@@ -23,7 +24,7 @@ const defaultState = {
     reminderTime: "19:30",
     photoEvery: 10,
     userId: AUTH_USER,
-    syncEnabled: false,
+    syncEnabled: true,
     syncUrl: DEFAULT_SYNC_URL,
     syncToken: ""
   },
@@ -105,7 +106,6 @@ const els = {
   testNtfyButton: document.querySelector("#testNtfyButton"),
   syncEnabledInput: document.querySelector("#syncEnabledInput"),
   syncUrlInput: document.querySelector("#syncUrlInput"),
-  syncTokenInput: document.querySelector("#syncTokenInput"),
   syncNowButton: document.querySelector("#syncNowButton"),
   syncStatus: document.querySelector("#syncStatus"),
   friendFields: document.querySelector("#friendFields"),
@@ -456,10 +456,14 @@ async function handleLogin(event) {
   els.loginError.textContent = "";
 
   const username = els.usernameInput.value.trim().toLowerCase();
-  const passwordHash = await hashText(els.passwordInput.value);
+  const password = els.passwordInput.value;
+  const passwordHash = await hashText(password);
 
   if (username === AUTH_USER && passwordHash === AUTH_PASSWORD_HASH) {
     setAuthenticated(username);
+    await startSyncSession(username, password);
+    els.passwordInput.value = "";
+    syncPull({ silent: true });
     return;
   }
 
@@ -473,6 +477,7 @@ function logout() {
   if (!confirmed) return;
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
+  localStorage.removeItem(SYNC_SESSION_KEY);
   showLogin();
 }
 
@@ -1147,7 +1152,6 @@ function openSettings() {
   els.reminderTimeInput.value = state.profile.reminderTime;
   els.syncEnabledInput.checked = Boolean(state.profile.syncEnabled);
   els.syncUrlInput.value = state.profile.syncUrl || DEFAULT_SYNC_URL;
-  els.syncTokenInput.value = state.profile.syncToken || "";
   els.syncStatus.textContent = syncIsConfigured() ? "Synk er konfigurert." : "Synk er ikke konfigurert.";
   closeCapacityFields();
   els.settingsDialog.showModal();
@@ -1181,7 +1185,7 @@ function saveSettings(event) {
     reminderTime: els.reminderTimeInput.value || "19:30",
     syncEnabled: els.syncEnabledInput.checked,
     syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
-    syncToken: els.syncTokenInput.value.trim()
+    syncToken: state.profile.syncToken || ""
   };
 
   saveState();
@@ -1294,17 +1298,74 @@ function normalizeSyncUrl(value) {
 }
 
 function syncIsConfigured() {
-  return Boolean(isAuthenticated() && state.profile.syncEnabled && state.profile.syncUrl && state.profile.syncToken);
+  return Boolean(isAuthenticated() && state.profile.syncEnabled && state.profile.syncUrl && currentSyncToken());
 }
 
 function syncEndpoint() {
   return `${normalizeSyncUrl(state.profile.syncUrl)}/api/state`;
 }
 
+function syncLoginEndpoint() {
+  return `${normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL)}/api/login`;
+}
+
+function readSyncSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(SYNC_SESSION_KEY));
+    if (!session?.token || !session?.userId || Date.parse(session.expiresAt || "") <= Date.now()) {
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function writeSyncSession(session) {
+  localStorage.setItem(SYNC_SESSION_KEY, JSON.stringify(session));
+}
+
+function currentSyncToken() {
+  const session = readSyncSession();
+  return session?.token || state.profile.syncToken || "";
+}
+
+async function startSyncSession(username, password) {
+  try {
+    const response = await fetch(syncLoginEndpoint(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      body: JSON.stringify({ username, password })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    if (!payload.sessionToken || !payload.userId) throw new Error("missing_session");
+    writeSyncSession({
+      token: payload.sessionToken,
+      userId: payload.userId,
+      expiresAt: payload.expiresAt
+    });
+    state.profile = {
+      ...state.profile,
+      userId: payload.userId,
+      syncEnabled: true,
+      syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
+      syncToken: ""
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    setSyncStatus("Synk er koblet til innloggingen.");
+    return true;
+  } catch {
+    setSyncStatus("Innlogging virker lokalt, men sync-session kunne ikke hentes.");
+    return false;
+  }
+}
+
 function syncHeaders() {
   return {
-    Authorization: `Bearer ${state.profile.syncToken}`,
-    "X-WB-User": localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
+    Authorization: `Bearer ${currentSyncToken()}`,
+    "X-WB-User": readSyncSession()?.userId || localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
     "Content-Type": "application/json"
   };
 }
@@ -1425,9 +1486,13 @@ async function syncNow() {
     userId: localStorage.getItem(AUTH_USER_KEY) || AUTH_USER,
     syncEnabled: true,
     syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
-    syncToken: els.syncTokenInput.value.trim()
+    syncToken: ""
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!currentSyncToken()) {
+    setSyncStatus("Logg ut og inn igjen for å hente ny sync-session.");
+    return;
+  }
   const pulled = await syncPull();
   if (pulled) await syncPush();
 }
