@@ -1220,15 +1220,6 @@ function sortedHistoryAscending() {
   );
 }
 
-function bestExerciseMain(key) {
-  const savedStart = exerciseSetting(key).start || 0;
-  return Math.max(savedStart, ...state.history.map((entry) => {
-    if (key === "pushups") return entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0;
-    if (key === "situps") return entry.actual?.situpsPerSet || entry.situpsPerSet || 0;
-    return entry.actual?.exercises?.[key]?.main || 0;
-  }));
-}
-
 function firstDateWhen(predicate) {
   return sortedHistoryAscending().find(predicate)?.date || "";
 }
