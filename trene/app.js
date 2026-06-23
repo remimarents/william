@@ -112,7 +112,6 @@ const els = {
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
   testNtfyButton: document.querySelector("#testNtfyButton"),
-  syncEnabledInput: document.querySelector("#syncEnabledInput"),
   syncUrlInput: document.querySelector("#syncUrlInput"),
   syncNowButton: document.querySelector("#syncNowButton"),
   syncStatus: document.querySelector("#syncStatus"),
@@ -1260,7 +1259,6 @@ function openSettings() {
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
-  els.syncEnabledInput.checked = Boolean(state.profile.syncEnabled);
   els.syncUrlInput.value = state.profile.syncUrl || DEFAULT_SYNC_URL;
   els.syncStatus.textContent = syncIsConfigured() ? "Synk er konfigurert." : "Synk er ikke konfigurert.";
   closeCapacityFields();
@@ -1293,7 +1291,7 @@ function saveSettings(event) {
     ntfyTopic: sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC,
     remindersEnabled: els.remindersInput.checked,
     reminderTime: els.reminderTimeInput.value || "19:30",
-    syncEnabled: els.syncEnabledInput.checked,
+    syncEnabled: true,
     syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
     syncToken: state.profile.syncToken || ""
   };
@@ -1659,7 +1657,6 @@ async function syncPush({ silent = false } = {}) {
 }
 
 async function syncNow() {
-  els.syncEnabledInput.checked = true;
   state.profile = {
     ...state.profile,
     userId: localStorage.getItem(AUTH_USER_KEY) || AUTH_USER,
