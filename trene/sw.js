@@ -1,4 +1,4 @@
-const CACHE_NAME = "william-trene-v57";
+const CACHE_NAME = "william-trene-v58";
 const ASSETS = [
   "./",
   "./index.html",
@@ -30,6 +30,14 @@ const ASSETS = [
   "./assets/badges/form-master-earned.jpg",
   "./assets/badges/iron-streak-locked.jpg",
   "./assets/badges/iron-streak-earned.jpg",
+  "./assets/badges/trifecta-locked.jpg",
+  "./assets/badges/trifecta-earned.jpg",
+  "./assets/badges/photo-king-locked.jpg",
+  "./assets/badges/photo-king-earned.jpg",
+  "./assets/badges/pro-mode-locked.jpg",
+  "./assets/badges/pro-mode-earned.jpg",
+  "./assets/badges/morning-warrior-locked.jpg",
+  "./assets/badges/morning-warrior-earned.jpg",
   "./assets/exercises/pushups.jpg",
   "./assets/exercises/situps.jpg",
   "./assets/exercises/kneboy.jpg",

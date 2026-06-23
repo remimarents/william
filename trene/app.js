@@ -1327,7 +1327,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "first",
       title: "Første økt",
-      description: "Du har startet programmet og logget første treningsøkt.",
+      description: "Belønning for å komme i gang og lagre den første økten.",
       criteria: "Fullfør og lagre den første økten.",
       current: Math.min(state.history.length, 1),
       target: 1,
@@ -1339,7 +1339,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "week",
       title: "7 dager",
-      description: "En uke med sammenhengende gjennomføring.",
+      description: "Belønning for én hel uke med sammenhengende gjennomføring.",
       criteria: "Fullfør minst én økt hver dag i 7 dager på rad.",
       current: Math.min(streak, 7),
       target: 7,
@@ -1351,7 +1351,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "fifty",
       title: "50 reps",
-      description: "Halvveis mot hovedmålet i begge grunnøvelsene.",
+      description: "Belønning for å nå 50 i hovedsett på begge grunnøvelsene.",
       criteria: "Nå 50 i hovedsett for både pushups og situps.",
       current: Math.min(pairBest, 50),
       target: 50,
@@ -1363,7 +1363,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "hundred",
       title: "1 × 100",
-      description: "Sluttmålet: 100 gode reps i ett sammenhengende hovedsett.",
+      description: "Belønning for å nå sluttmålet på 100 gode reps i ett hovedsett.",
       criteria: "Nå 100 i hovedsett for både pushups og situps.",
       current: Math.min(pairBest, 100),
       target: 100,
@@ -1375,44 +1375,44 @@ function buildBadges(streak, pairBest) {
     {
       id: "pro-mode",
       title: "Pro Mode",
-      description: "Begge grunnmålene er slått. Da er basen på plass.",
+      description: "Belønning for å fullføre målet på både pushups og situps.",
       criteria: `Nå målet for både pushups (${pushGoal}) og situps (${sitGoal}).`,
       current: Math.min(proCurrent, proTarget),
       target: proTarget,
       unit: "målpoeng",
       progressText: `${bestControlledPushupsSet()}/${pushGoal} pushups · ${bestSitupsSet()}/${sitGoal} situps`,
       unlockedDate: proModeUnlockDate(),
-      imageLocked: "./assets/badges/hundred-locked.jpg",
-      imageEarned: "./assets/badges/hundred-earned.jpg"
+      imageLocked: "./assets/badges/pro-mode-locked.jpg",
+      imageEarned: "./assets/badges/pro-mode-earned.jpg"
     },
     {
       id: "photo-king",
       title: "Photo King",
-      description: "Du dokumenterer utviklingen, ikke bare øktene.",
+      description: "Belønning for å dokumentere utviklingen med bilder over tid.",
       criteria: "Last opp bilde 3 i bildeprogresjonen.",
       current: Math.min(photoCount, 3),
       target: 3,
       unit: "bilder",
       unlockedDate: nthProgressPhotoDate(3),
-      imageLocked: "./assets/badges/start-locked.jpg",
-      imageEarned: "./assets/badges/start-earned.jpg"
+      imageLocked: "./assets/badges/photo-king-locked.jpg",
+      imageEarned: "./assets/badges/photo-king-earned.jpg"
     },
     {
       id: "trifecta",
       title: "Trifecta",
-      description: "Du har nådd målet på en tredje øvelse i tillegg til grunnøvelsene.",
+      description: "Belønning for å nå målet på en tredje øvelse i programmet.",
       criteria: `Nå målet for ${exerciseLabel(thirdKey).toLowerCase()} (${thirdGoal}).`,
       current: Math.min(thirdBest, thirdGoal),
       target: thirdGoal,
       unit: thirdKey === "planke" || thirdKey === "sideplanke" ? "sek" : "reps",
       unlockedDate: exerciseGoalUnlockDate(thirdKey),
-      imageLocked: "./assets/badges/fifty-locked.jpg",
-      imageEarned: "./assets/badges/fifty-earned.jpg"
+      imageLocked: "./assets/badges/trifecta-locked.jpg",
+      imageEarned: "./assets/badges/trifecta-earned.jpg"
     },
     {
       id: "iron-streak",
       title: "Iron Streak",
-      description: "30 dager på rad bygger både kapasitet og viljestyrke.",
+      description: "Belønning for 30 dager på rad med trening.",
       criteria: "Fullfør minst én økt hver dag i 30 dager på rad.",
       current: Math.min(streak, 30),
       target: 30,
@@ -1424,7 +1424,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "form-master",
       title: "Form Master",
-      description: "Kontrollert trening er mer verdt enn raske, stygge repetisjoner.",
+      description: "Belønning for økter der teknikk og kontroll prioriteres.",
       criteria: "Logg 10 økter med gjennomført øvelse og følelse lett eller passe.",
       current: Math.min(formMasterCount, 10),
       target: 10,
@@ -1438,7 +1438,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "comeback",
       title: "Comeback",
-      description: "Å starte igjen etter et hull er en egen ferdighet.",
+      description: "Belønning for å komme tilbake etter et hull i streaken.",
       criteria: "Fullfør en økt etter minst én dag uten registrert trening.",
       current: comebackUnlockDate() ? 1 : 0,
       target: 1,
@@ -1450,7 +1450,7 @@ function buildBadges(streak, pairBest) {
     {
       id: "volume-beast",
       title: "Volume Beast",
-      description: "Total treningsmengde bygger arbeidskapasitet over tid.",
+      description: "Belønning for høy total treningsmengde over tid.",
       criteria: "Samle 5000 totale repetisjoner/sekunder på tvers av øvelser.",
       current: Math.min(totalVolume, 5000),
       target: 5000,
@@ -1462,14 +1462,14 @@ function buildBadges(streak, pairBest) {
     {
       id: "morning-warrior",
       title: "Morning Warrior",
-      description: "Morgenøkter gjør treningen ferdig før dagen rekker å bli travel.",
+      description: "Belønning for å få treningen gjort tidlig på dagen.",
       criteria: "Logg 10 økter før klokken 10:00.",
       current: Math.min(morningCount, 10),
       target: 10,
       unit: "morgenøkter",
       unlockedDate: nthQualifiedWorkoutDate(10, isMorningWorkout),
-      imageLocked: "./assets/badges/week-locked.jpg",
-      imageEarned: "./assets/badges/week-earned.jpg"
+      imageLocked: "./assets/badges/morning-warrior-locked.jpg",
+      imageEarned: "./assets/badges/morning-warrior-earned.jpg"
     }
   ];
 }
