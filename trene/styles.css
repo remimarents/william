@@ -1223,6 +1223,12 @@ h2 {
   border: 1px solid var(--hairline);
   border-radius: 12px;
   background: var(--panel-2);
+  cursor: pointer;
+}
+
+.exercise-manager-row:focus-visible {
+  outline: 3px solid rgba(22, 184, 166, 0.34);
+  outline-offset: 2px;
 }
 
 .exercise-manager-row strong,

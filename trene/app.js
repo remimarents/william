@@ -1384,10 +1384,10 @@ function renderExerciseManager() {
     const guide = exerciseGuides[key];
     const checked = active.has(key) ? "checked" : "";
     return `
-      <article class="exercise-manager-row">
-        <button class="exercise-manager-info" type="button" data-exercise-guide="${key}" aria-label="Åpne instruksjon for ${guide?.title || key}">
+      <article class="exercise-manager-row" data-exercise-manager-guide="${key}" role="button" tabindex="0" aria-label="Åpne instruksjon for ${guide?.title || key}">
+        <span class="exercise-manager-info" aria-hidden="true">
           <img src="${guide?.image || "./assets/icon-192.png"}" alt="" loading="lazy" />
-        </button>
+        </span>
         <div>
           <strong>${guide?.title || key}</strong>
           <p>${key === "pushups" || key === "situps" ? "Grunnøvelse i programmet." : "Kan legges til tidligere eller senere."}</p>
@@ -1415,6 +1415,22 @@ function handleExerciseManagerChange(event) {
   saveState();
   renderExerciseManager();
   render();
+}
+
+function handleExerciseManagerClick(event) {
+  if (event.target.closest(".switch-label")) return;
+  const row = event.target.closest("[data-exercise-manager-guide]");
+  if (!row) return;
+  showExerciseGuide(row.dataset.exerciseManagerGuide);
+}
+
+function handleExerciseManagerKeydown(event) {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  if (event.target.closest(".switch-label")) return;
+  const row = event.target.closest("[data-exercise-manager-guide]");
+  if (!row) return;
+  event.preventDefault();
+  showExerciseGuide(row.dataset.exerciseManagerGuide);
 }
 
 function handleExerciseManagerOverlayClick(event) {
@@ -1876,6 +1892,8 @@ els.exerciseGuideClose.addEventListener("click", hideExerciseGuide);
 els.exerciseGuidePopover.addEventListener("click", handleExerciseGuideOverlayClick);
 els.exerciseManagerClose.addEventListener("click", hideExerciseManager);
 els.exerciseManagerPopover.addEventListener("click", handleExerciseManagerOverlayClick);
+els.exerciseManagerList.addEventListener("click", handleExerciseManagerClick);
+els.exerciseManagerList.addEventListener("keydown", handleExerciseManagerKeydown);
 els.exerciseManagerList.addEventListener("change", handleExerciseManagerChange);
 document.addEventListener("click", handleHelpClick);
 document.addEventListener("keydown", (event) => {
