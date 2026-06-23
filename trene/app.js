@@ -4,6 +4,7 @@ const AUTH_USER = "williamberner";
 const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
 const APP_URL = "https://remimarents.github.io/william/trene/";
 const DEFAULT_NTFY_TOPIC = "william-trene-wb-8v4k9m2p";
+const DEFAULT_SYNC_URL = "https://william-trene-sync.marents.no";
 const FRIEND_REQUEST_PHONE = "91666666";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -21,7 +22,7 @@ const defaultState = {
     reminderTime: "19:30",
     photoEvery: 10,
     syncEnabled: false,
-    syncUrl: "",
+    syncUrl: DEFAULT_SYNC_URL,
     syncToken: ""
   },
   history: [],
@@ -1131,7 +1132,7 @@ function openSettings() {
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
   els.syncEnabledInput.checked = Boolean(state.profile.syncEnabled);
-  els.syncUrlInput.value = state.profile.syncUrl || "";
+  els.syncUrlInput.value = state.profile.syncUrl || DEFAULT_SYNC_URL;
   els.syncTokenInput.value = state.profile.syncToken || "";
   els.syncStatus.textContent = syncIsConfigured() ? "Synk er konfigurert." : "Synk er ikke konfigurert.";
   closeCapacityFields();

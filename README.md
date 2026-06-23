@@ -43,7 +43,11 @@ Launchd installeres fra `launchd/com.remimarents.william-trene-reminder.plist`.
 
 `scripts/william-sync-server.mjs` er en liten JSON-basert sync-server for appdata. Appen kan lese/skrive felles state via `https://.../api/state`, slik at Williams økter vises på andre telefoner også.
 
-Serveren kjører lokalt på Mac mini, men GitHub Pages-appen krever HTTPS. Eksponer derfor `127.0.0.1:8787` med en HTTPS-tunnel, for eksempel Cloudflare Tunnel.
+Serveren kjører lokalt på Mac mini, men GitHub Pages-appen krever HTTPS. Den aktive produksjonsruten er Cloudflare Tunnel `william-trene-sync`:
+
+`https://william-trene-sync.marents.no`
+
+Tunnelen peker til lokal origin `http://127.0.0.1:18787`.
 
 Lag en sterk nøkkel:
 
@@ -55,9 +59,10 @@ Test lokalt:
 
 ```bash
 SYNC_TOKEN="<nøkkel>" node scripts/william-sync-server.mjs
-curl -H "Authorization: Bearer <nøkkel>" http://127.0.0.1:8787/api/state
+curl -H "Authorization: Bearer <nøkkel>" http://127.0.0.1:18787/api/state
+curl -H "Authorization: Bearer <nøkkel>" https://william-trene-sync.marents.no/api/state
 ```
 
 Launchd-mal ligger i `launchd/com.remimarents.william-trene-sync.plist`. Bytt `CHANGE_ME` med nøkkelen lokalt før den lastes inn.
 
-I appen legges tunnel-URL og synk-nøkkel inn under `Innstillinger` → `Synkronisering`.
+I appen er tunnel-URL forhåndsutfylt under `Innstillinger` → `Synkronisering`. Skru på synk, legg inn synk-nøkkelen fra `/Users/remimarents/.william-trene-sync.env`, og trykk `Synk nå`.
