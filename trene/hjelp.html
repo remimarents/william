@@ -481,16 +481,31 @@
       }
 
       .photo-tile {
-        min-height: 140px;
-        display: grid;
-        align-content: end;
-        padding: 10px;
+        min-height: 220px;
+        display: block;
         border-radius: 14px;
-        background:
-          linear-gradient(180deg, transparent 35%, rgba(15, 23, 42, 0.72)),
-          linear-gradient(135deg, #ccfbf1, #e0f2fe);
+        background: #e0f2fe;
         color: white;
         font-weight: 900;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .photo-tile img {
+        width: 100%;
+        height: 100%;
+        min-height: 220px;
+        display: block;
+        object-fit: cover;
+        object-position: top center;
+      }
+
+      .photo-tile span {
+        position: absolute;
+        inset: auto 0 0;
+        padding: 34px 12px 12px;
+        background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.78));
+        color: white;
       }
 
       .callout {
@@ -686,9 +701,9 @@
         <h2>Se endring over tid</h2>
         <p>Legg inn startbilde og nytt bilde hver 10. økt. Bruk samme lys, speil, avstand og vinkel.</p>
         <div class="photo-strip" aria-label="Eksempel på bildeprogresjon">
-          <div class="photo-tile">Start</div>
-          <div class="photo-tile">Økt 10</div>
-          <div class="photo-tile">Økt 20</div>
+          <div class="photo-tile"><img src="./assets/help/progress-start.jpg" alt="Eksempel på startbilde i speil" /><span>Start</span></div>
+          <div class="photo-tile"><img src="./assets/help/progress-workout-10.jpg" alt="Eksempel på speilbilde etter økt 10" /><span>Økt 10</span></div>
+          <div class="photo-tile"><img src="./assets/help/progress-workout-20.jpg" alt="Eksempel på speilbilde etter økt 20" /><span>Økt 20</span></div>
         </div>
       </section>
 
