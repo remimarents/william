@@ -77,6 +77,9 @@
             <button class="icon-button" id="logoutButton" type="button" aria-label="Logg ut">
               <span aria-hidden="true">⎋</span>
             </button>
+            <button class="icon-button" id="exerciseManagerButton" type="button" aria-label="Legg til flere øvelser">
+              <span aria-hidden="true">+</span>
+            </button>
             <button class="icon-button" id="settingsButton" type="button" aria-label="Innstillinger">
               <span aria-hidden="true">⚙</span>
             </button>
@@ -267,6 +270,14 @@
         </label>
         <button class="text-button" id="testNtfyButton" type="button">Test ntfy</button>
 
+        <section class="exercise-settings">
+          <div>
+            <h3>Legg til flere øvelser</h3>
+            <p>Appen låser automatisk opp nye øvelser når du har nådd målet på øvelsene du har. Du kan også velge å legge til øvelser tidligere.</p>
+          </div>
+          <button class="text-button" id="openExerciseManagerFromSettings" type="button">Treningsøvelser</button>
+        </section>
+
         <section class="sync-settings">
           <div>
             <h3>Synkronisering</h3>
@@ -352,6 +363,19 @@
             <ul id="exerciseGuideMistakes"></ul>
           </section>
         </div>
+      </article>
+    </div>
+    <div class="exercise-manager-popover" id="exerciseManagerPopover" role="dialog" aria-modal="true" aria-labelledby="exerciseManagerTitle" hidden>
+      <article class="exercise-manager-card">
+        <div class="exercise-guide-header">
+          <div>
+            <p class="eyebrow">Legg til flere øvelser</p>
+            <h2 id="exerciseManagerTitle">Treningsøvelser</h2>
+            <p>Slå på øvelsene du vil ha i dagens oppgave og statistikk.</p>
+          </div>
+          <button class="icon-button" id="exerciseManagerClose" type="button" aria-label="Lukk treningsøvelser">×</button>
+        </div>
+        <div class="exercise-manager-list" id="exerciseManagerList"></div>
       </article>
     </div>
 

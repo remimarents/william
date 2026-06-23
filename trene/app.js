@@ -9,6 +9,9 @@ const DEFAULT_NTFY_TOPIC = "william-trene-wb-8v4k9m2p";
 const DEFAULT_SYNC_URL = "https://william-trene-sync.marents.no";
 const FRIEND_REQUEST_PHONE = "91666666";
 const DAY_MS = 24 * 60 * 60 * 1000;
+const BASE_EXERCISE_KEYS = ["pushups", "situps"];
+const EXTRA_EXERCISE_KEYS = ["kneboy", "utfall", "planke", "sideplanke", "rygghev", "mountain", "dips", "hollow", "burpees", "roing"];
+const ALL_EXERCISE_KEYS = [...BASE_EXERCISE_KEYS, ...EXTRA_EXERCISE_KEYS];
 
 const defaultState = {
   version: 1,
@@ -26,7 +29,8 @@ const defaultState = {
     userId: AUTH_USER,
     syncEnabled: true,
     syncUrl: DEFAULT_SYNC_URL,
-    syncToken: ""
+    syncToken: "",
+    enabledExercises: BASE_EXERCISE_KEYS
   },
   history: [],
   photos: [],
@@ -52,6 +56,11 @@ const els = {
   exerciseGuideWhy: document.querySelector("#exerciseGuideWhy"),
   exerciseGuideHow: document.querySelector("#exerciseGuideHow"),
   exerciseGuideMistakes: document.querySelector("#exerciseGuideMistakes"),
+  exerciseManagerButton: document.querySelector("#exerciseManagerButton"),
+  openExerciseManagerFromSettings: document.querySelector("#openExerciseManagerFromSettings"),
+  exerciseManagerPopover: document.querySelector("#exerciseManagerPopover"),
+  exerciseManagerClose: document.querySelector("#exerciseManagerClose"),
+  exerciseManagerList: document.querySelector("#exerciseManagerList"),
   usernameInput: document.querySelector("#usernameInput"),
   passwordInput: document.querySelector("#passwordInput"),
   loginError: document.querySelector("#loginError"),
@@ -122,6 +131,15 @@ const els = {
 };
 
 let state = loadState();
+
+function validExerciseKeys(keys) {
+  const selected = Array.isArray(keys) ? keys.filter((key) => ALL_EXERCISE_KEYS.includes(key)) : [];
+  return selected.length ? [...new Set(selected)] : [...BASE_EXERCISE_KEYS];
+}
+
+function enabledExerciseKeys() {
+  return validExerciseKeys(state.profile.enabledExercises);
+}
 
 const exerciseGuides = {
   pushups: {
@@ -497,7 +515,8 @@ function normalizeState(value) {
     pushTestMax: hasSavedPushTestMax ? savedProfile.pushTestMax : defaultState.profile.pushTestMax,
     situpBase: !hasSavedPushTestMax && savedProfile.situpBase === 0
       ? defaultState.profile.situpBase
-      : savedProfile.situpBase
+      : savedProfile.situpBase,
+    enabledExercises: validExerciseKeys(savedProfile.enabledExercises)
   };
 
   return {
@@ -552,7 +571,18 @@ function normalizeEntry(entry) {
       pushupsPerSet: entry.actual?.pushupsPerSet || entry.pushupsPerSet || targetPush,
       pushupsTotal: entry.actual?.pushupsTotal || targetPushTotal,
       situpsPerSet: entry.actual?.situpsPerSet || entry.situpsPerSet || targetSit,
-      situpsTotal: entry.actual?.situpsTotal || targetSitTotal
+      situpsTotal: entry.actual?.situpsTotal || targetSitTotal,
+      exercises: {
+        ...(entry.actual?.exercises || {}),
+        pushups: {
+          main: entry.actual?.exercises?.pushups?.main || entry.actual?.pushupsPerSet || entry.pushupsPerSet || targetPush,
+          total: entry.actual?.exercises?.pushups?.total || entry.actual?.pushupsTotal || targetPushTotal
+        },
+        situps: {
+          main: entry.actual?.exercises?.situps?.main || entry.actual?.situpsPerSet || entry.situpsPerSet || targetSit,
+          total: entry.actual?.exercises?.situps?.total || entry.actual?.situpsTotal || targetSitTotal
+        }
+      }
     },
     effort: entry.effort || "passe",
     photo: normalizedPhoto
@@ -709,26 +739,7 @@ function render() {
 }
 
 function renderExercises(workout) {
-  const exercises = [
-    {
-      key: "pushups",
-      name: "Pushups",
-      detail: supportText(workout.pushupsPerSet, workout.pushSupport),
-      mainValue: workout.pushupsPerSet,
-      totalValue: workout.pushupsTotal,
-      mainId: "actualPushInput",
-      totalId: "actualPushTotalInput"
-    },
-    {
-      key: "situps",
-      name: "Situps",
-      detail: workout.situpsPerSet > 0 ? supportText(workout.situpsPerSet, workout.sitSupport) : "Test startnivå: skriv hovedsett og total.",
-      mainValue: workout.situpsPerSet > 0 ? workout.situpsPerSet : "",
-      totalValue: workout.situpsTotal > 0 ? workout.situpsTotal : "",
-      mainId: "actualSitupInput",
-      totalId: "actualSitupTotalInput"
-    }
-  ];
+  const exercises = enabledExerciseKeys().map((key) => exerciseTargetForToday(key, workout));
 
   els.exerciseList.innerHTML = exercises.map((exercise) => `
     <article class="exercise-row">
@@ -742,15 +753,50 @@ function renderExercises(workout) {
       <span class="exercise-inputs">
         <label>
           Hovedsett ${infoButton("Hovedsett er første sammenhengende sett. Dette tallet teller mot 1 x 100.")}
-          <input class="actual-input" id="${exercise.mainId}" type="number" inputmode="numeric" min="0" max="200" value="${exercise.mainValue}" aria-label="Faktisk ${exercise.name} i hovedsett" />
+          <input class="actual-input" id="${exercise.mainId}" data-exercise-main="${exercise.key}" type="number" inputmode="numeric" min="0" max="300" value="${exercise.mainValue}" aria-label="Faktisk ${exercise.name} i hovedsett" />
         </label>
         <label>
           Totalt ${infoButton("Totalt er hovedsett pluss støtte-sett. Det viser treningsmengde, men teller ikke som 1 x 100.")}
-          <input class="actual-input" id="${exercise.totalId}" type="number" inputmode="numeric" min="0" max="300" value="${exercise.totalValue}" aria-label="Faktisk ${exercise.name} totalt" />
+          <input class="actual-input" id="${exercise.totalId}" data-exercise-total="${exercise.key}" type="number" inputmode="numeric" min="0" max="500" value="${exercise.totalValue}" aria-label="Faktisk ${exercise.name} totalt" />
         </label>
       </span>
     </article>
   `).join("");
+}
+
+function exerciseTargetForToday(key, workout) {
+  const guide = exerciseGuides[key];
+  if (key === "pushups") {
+    return {
+      key,
+      name: "Pushups",
+      detail: supportText(workout.pushupsPerSet, workout.pushSupport),
+      mainValue: workout.pushupsPerSet,
+      totalValue: workout.pushupsTotal,
+      mainId: "actualPushInput",
+      totalId: "actualPushTotalInput"
+    };
+  }
+  if (key === "situps") {
+    return {
+      key,
+      name: "Situps",
+      detail: workout.situpsPerSet > 0 ? supportText(workout.situpsPerSet, workout.sitSupport) : "Test startnivå: skriv hovedsett og total.",
+      mainValue: workout.situpsPerSet > 0 ? workout.situpsPerSet : "",
+      totalValue: workout.situpsTotal > 0 ? workout.situpsTotal : "",
+      mainId: "actualSitupInput",
+      totalId: "actualSitupTotalInput"
+    };
+  }
+  return {
+    key,
+    name: guide?.title || key,
+    detail: "Ekstra øvelse: registrer det du faktisk gjorde. Bruk reps, eller sekunder for statiske øvelser.",
+    mainValue: "",
+    totalValue: "",
+    mainId: `actual-${key}-main`,
+    totalId: `actual-${key}-total`
+  };
 }
 
 function infoButton(message, light = false) {
@@ -856,22 +902,26 @@ function renderPhotoGallery() {
 }
 
 function renderExerciseGraphs(entries) {
-  const exercises = [
-    {
-      title: "Pushups",
-      unit: "pushups",
-      help: "Grafen viser hovedsettet for pushups per fullførte økt.",
-      value: (entry) => entry.actual?.pushupsPerSet || 0
-    },
-    {
-      title: "Situps",
-      unit: "situps",
-      help: "Grafen viser hovedsettet for situps per fullførte økt.",
-      value: (entry) => entry.actual?.situpsPerSet || 0
-    }
-  ];
+  const exercises = enabledExerciseKeys().map((key) => exerciseStatsConfig(key));
 
   els.exerciseGraphDeck.innerHTML = exercises.map((exercise) => renderExerciseGraphCard(entries, exercise)).join("");
+}
+
+function exerciseStatsConfig(key) {
+  const guide = exerciseGuides[key];
+  return {
+    key,
+    title: guide?.title || key,
+    unit: (guide?.title || key).toLowerCase(),
+    help: `Grafen viser hovedsettet for ${guide?.title || key} per fullførte økt.`,
+    value: (entry) => exerciseMainValue(entry, key)
+  };
+}
+
+function exerciseMainValue(entry, key) {
+  if (key === "pushups") return entry.actual?.pushupsPerSet || entry.actual?.exercises?.pushups?.main || 0;
+  if (key === "situps") return entry.actual?.situpsPerSet || entry.actual?.exercises?.situps?.main || 0;
+  return entry.actual?.exercises?.[key]?.main || 0;
 }
 
 function renderExerciseGraphCard(entries, exercise) {
@@ -1135,6 +1185,7 @@ function completeWorkout() {
   const actualSitupsPerSet = clamp(Number(document.querySelector("#actualSitupInput")?.value), 0, 200);
   const actualPushupsTotal = Math.max(actualPushupsPerSet, clamp(Number(document.querySelector("#actualPushTotalInput")?.value), 0, 300));
   const actualSitupsTotal = Math.max(actualSitupsPerSet, clamp(Number(document.querySelector("#actualSitupTotalInput")?.value), 0, 300));
+  const actualExercises = readActualExercises();
   const streakBefore = currentStreak();
   const hitTargetBonus = actualPushupsPerSet >= workout.pushupsPerSet ? 10 : 0;
   const xp = 20 + Math.min(30, actualPushupsPerSet) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
@@ -1156,7 +1207,8 @@ function completeWorkout() {
       pushupsPerSet: actualPushupsPerSet,
       pushupsTotal: actualPushupsTotal,
       situpsPerSet: actualSitupsPerSet,
-      situpsTotal: actualSitupsTotal
+      situpsTotal: actualSitupsTotal,
+      exercises: actualExercises
     },
     effort: els.effortInput.value,
     photo: state.pendingPhoto
@@ -1173,6 +1225,16 @@ function completeWorkout() {
   saveState();
   render();
   sendCompletionMessage(actualPushupsTotal, actualSitupsTotal);
+}
+
+function readActualExercises() {
+  const result = {};
+  enabledExerciseKeys().forEach((key) => {
+    const main = clamp(Number(document.querySelector(`[data-exercise-main="${key}"]`)?.value), 0, 300);
+    const total = Math.max(main, clamp(Number(document.querySelector(`[data-exercise-total="${key}"]`)?.value), 0, 500));
+    result[key] = { main, total };
+  });
+  return result;
 }
 
 function openSettings() {
@@ -1290,6 +1352,63 @@ function showExerciseGuide(key) {
 
 function hideExerciseGuide() {
   els.exerciseGuidePopover.hidden = true;
+}
+
+function showExerciseManager() {
+  renderExerciseManager();
+  hideHelp();
+  els.exerciseManagerPopover.hidden = false;
+}
+
+function hideExerciseManager() {
+  els.exerciseManagerPopover.hidden = true;
+}
+
+function renderExerciseManager() {
+  const active = new Set(enabledExerciseKeys());
+  els.exerciseManagerList.innerHTML = ALL_EXERCISE_KEYS.map((key) => {
+    const guide = exerciseGuides[key];
+    const checked = active.has(key) ? "checked" : "";
+    return `
+      <article class="exercise-manager-row">
+        <button class="exercise-manager-info" type="button" data-exercise-guide="${key}" aria-label="Åpne instruksjon for ${guide?.title || key}">
+          <img src="${guide?.image || "./assets/icon-192.png"}" alt="" loading="lazy" />
+        </button>
+        <div>
+          <strong>${guide?.title || key}</strong>
+          <p>${key === "pushups" || key === "situps" ? "Grunnøvelse i programmet." : "Kan legges til tidligere eller senere."}</p>
+        </div>
+        <label class="switch-label" aria-label="Vis ${guide?.title || key} i dagens oppgave og statistikk">
+          <input type="checkbox" data-exercise-toggle="${key}" ${checked} />
+          <span></span>
+        </label>
+      </article>
+    `;
+  }).join("");
+}
+
+function handleExerciseManagerChange(event) {
+  const toggle = event.target.closest("[data-exercise-toggle]");
+  if (!toggle) return;
+  const key = toggle.dataset.exerciseToggle;
+  const active = new Set(enabledExerciseKeys());
+  if (toggle.checked) {
+    active.add(key);
+  } else {
+    active.delete(key);
+  }
+  if (!active.size) {
+    active.add("pushups");
+    if (key === "pushups") toggle.checked = true;
+  }
+  state.profile.enabledExercises = validExerciseKeys([...active]);
+  saveState();
+  renderExerciseManager();
+  render();
+}
+
+function handleExerciseManagerOverlayClick(event) {
+  if (event.target === els.exerciseManagerPopover) hideExerciseManager();
 }
 
 function handleHelpOverlayClick(event) {
@@ -1731,6 +1850,8 @@ els.completeButton.addEventListener("click", completeWorkout);
 els.loginForm.addEventListener("submit", handleLogin);
 els.logoutButton.addEventListener("click", logout);
 els.settingsButton.addEventListener("click", openSettings);
+els.exerciseManagerButton.addEventListener("click", showExerciseManager);
+els.openExerciseManagerFromSettings.addEventListener("click", showExerciseManager);
 els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
 els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
@@ -1743,11 +1864,15 @@ els.helpPopoverClose.addEventListener("click", hideHelp);
 els.helpPopover.addEventListener("click", handleHelpOverlayClick);
 els.exerciseGuideClose.addEventListener("click", hideExerciseGuide);
 els.exerciseGuidePopover.addEventListener("click", handleExerciseGuideOverlayClick);
+els.exerciseManagerClose.addEventListener("click", hideExerciseManager);
+els.exerciseManagerPopover.addEventListener("click", handleExerciseManagerOverlayClick);
+els.exerciseManagerList.addEventListener("change", handleExerciseManagerChange);
 document.addEventListener("click", handleHelpClick);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     hideHelp();
     hideExerciseGuide();
+    hideExerciseManager();
   }
 });
 
