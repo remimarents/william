@@ -227,7 +227,7 @@
       <form method="dialog" class="settings-form">
         <div class="section-heading tight">
           <h2>Innstillinger</h2>
-          <button class="icon-button" value="cancel" aria-label="Lukk" type="submit">×</button>
+          <button class="icon-button" id="closeSettingsButton" aria-label="Lukk" type="button">×</button>
         </div>
         <a class="settings-help-link" href="./hjelp.html" target="_blank" rel="noopener">Hjelp/Bruksanvisning</a>
         <label>
@@ -313,7 +313,6 @@
           <button class="text-button" id="requestFriendButton" type="button" aria-expanded="false" aria-controls="friendFields">Be om konto til kompis</button>
         </section>
 
-        <button class="primary-button" id="saveSettingsButton" value="default" type="submit">Lagre</button>
       </form>
     </dialog>
     <div class="help-popover" id="helpPopover" role="dialog" aria-modal="true" aria-labelledby="helpPopoverTitle" hidden>

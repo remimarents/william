@@ -100,7 +100,8 @@ const els = {
   logoutButton: document.querySelector("#logoutButton"),
   settingsButton: document.querySelector("#settingsButton"),
   settingsDialog: document.querySelector("#settingsDialog"),
-  saveSettingsButton: document.querySelector("#saveSettingsButton"),
+  settingsForm: document.querySelector(".settings-form"),
+  closeSettingsButton: document.querySelector("#closeSettingsButton"),
   nameInput: document.querySelector("#nameInput"),
   toggleCapacityButton: document.querySelector("#toggleCapacityButton"),
   capacityFields: document.querySelector("#capacityFields"),
@@ -1277,9 +1278,10 @@ function toggleCapacityFields() {
   els.toggleCapacityButton.textContent = willOpen ? "Skjul startnivå" : "Endre startnivå";
 }
 
-function saveSettings(event) {
-  event.preventDefault();
+let settingsAutoSaveTimer = null;
 
+function persistSettingsFromInputs() {
+  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
   state.profile = {
     ...state.profile,
     name: els.nameInput.value.trim() || "William",
@@ -1296,10 +1298,32 @@ function saveSettings(event) {
   };
 
   saveState();
+  const nextReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
+  if (previousReminderConfig !== nextReminderConfig) sendReminderConfig();
+  render();
+}
+
+function scheduleSettingsAutoSave() {
+  window.clearTimeout(settingsAutoSaveTimer);
+  settingsAutoSaveTimer = window.setTimeout(persistSettingsFromInputs, 350);
+}
+
+function closeSettings() {
+  window.clearTimeout(settingsAutoSaveTimer);
+  persistSettingsFromInputs();
   els.settingsDialog.close();
   closeCapacityFields();
-  sendReminderConfig();
-  render();
+}
+
+function handleSettingsClosed() {
+  window.clearTimeout(settingsAutoSaveTimer);
+  persistSettingsFromInputs();
+  closeCapacityFields();
+}
+
+function handleSettingsCancel() {
+  window.clearTimeout(settingsAutoSaveTimer);
+  persistSettingsFromInputs();
 }
 
 function clamp(value, min, max) {
@@ -1872,10 +1896,22 @@ els.completeButton.addEventListener("click", completeWorkout);
 els.loginForm.addEventListener("submit", handleLogin);
 els.logoutButton.addEventListener("click", logout);
 els.settingsButton.addEventListener("click", openSettings);
+els.settingsForm.addEventListener("submit", (event) => event.preventDefault());
+els.closeSettingsButton.addEventListener("click", closeSettings);
+els.settingsDialog.addEventListener("close", handleSettingsClosed);
+els.settingsDialog.addEventListener("cancel", handleSettingsCancel);
 els.exerciseManagerButton.addEventListener("click", showExerciseManager);
 els.openExerciseManagerFromSettings.addEventListener("click", showExerciseManager);
 els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
-els.saveSettingsButton.addEventListener("click", saveSettings);
+els.nameInput.addEventListener("input", scheduleSettingsAutoSave);
+[
+  els.pushBaseInput,
+  els.pushTestMaxInput,
+  els.situpBaseInput,
+  els.setsInput,
+  els.remindersInput,
+  els.reminderTimeInput
+].forEach((input) => input.addEventListener("change", persistSettingsFromInputs));
 els.exportButton.addEventListener("click", exportData);
 els.testNtfyButton.addEventListener("click", testNtfy);
 els.photoInput.addEventListener("change", handlePhotoChange);

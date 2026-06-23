@@ -1135,6 +1135,10 @@ h2 {
   background: #f8fafc;
 }
 
+.exercise-settings .text-button {
+  width: 100%;
+}
+
 .milestones {
   display: grid;
   gap: 10px;
