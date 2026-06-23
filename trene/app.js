@@ -483,6 +483,10 @@ const factDeck = [
   {
     title: "Maks effekt per innsats",
     text: "Smart innsats er ikke å gjøre mest mulig hver dag. Det er å gjøre nok, ofte nok, med god form, mat og søvn. Da får du både sterkere kropp og bedre vane."
+  },
+  {
+    title: "Hva skaper vinnere?",
+    text: "Ikke talent. Ikke bra utstyr. Ikke at alt går perfekt. De som blir best har én ting til felles: de jobber mer konsistent. Dagen etter en dårlig treningsdag fortsetter de. Selv litt trening når du er sliten, syk eller noe skjer, er bedre enn å droppe ut av programmet. Det farligste er ikke én dårlig økt. Det du skal passe deg for, er å misse økten etterpå også."
   }
 ];
 
