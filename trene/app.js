@@ -1593,6 +1593,9 @@ function hideExerciseGuide() {
 function showExerciseManager() {
   renderExerciseManager();
   hideHelp();
+  if (els.settingsDialog.open) {
+    els.settingsDialog.close();
+  }
   els.exerciseManagerPopover.hidden = false;
 }
 
