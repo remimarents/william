@@ -469,6 +469,8 @@ async function handleLogin(event) {
 }
 
 function logout() {
+  const confirmed = window.confirm("Vil du logge ut av WB Trene? Treningsdata beholdes, men du må logge inn igjen på denne enheten.");
+  if (!confirmed) return;
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
   showLogin();
