@@ -1,5 +1,6 @@
 const STORAGE_KEY = "william-trene-v1";
 const AUTH_KEY = "william-trene-auth-v1";
+const AUTH_USER_KEY = "william-trene-user-v1";
 const AUTH_USER = "williamberner";
 const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
 const APP_URL = "https://remimarents.github.io/william/trene/";
@@ -21,6 +22,7 @@ const defaultState = {
     remindersEnabled: true,
     reminderTime: "19:30",
     photoEvery: 10,
+    userId: AUTH_USER,
     syncEnabled: false,
     syncUrl: DEFAULT_SYNC_URL,
     syncToken: ""
@@ -423,11 +425,14 @@ async function hashText(value) {
 }
 
 function isAuthenticated() {
-  return localStorage.getItem(AUTH_KEY) === AUTH_PASSWORD_HASH;
+  if (localStorage.getItem(AUTH_KEY) !== AUTH_PASSWORD_HASH) return false;
+  if (!localStorage.getItem(AUTH_USER_KEY)) localStorage.setItem(AUTH_USER_KEY, AUTH_USER);
+  return localStorage.getItem(AUTH_USER_KEY) === AUTH_USER;
 }
 
-function setAuthenticated() {
+function setAuthenticated(username) {
   localStorage.setItem(AUTH_KEY, AUTH_PASSWORD_HASH);
+  localStorage.setItem(AUTH_USER_KEY, username);
   showApp();
 }
 
@@ -454,7 +459,7 @@ async function handleLogin(event) {
   const passwordHash = await hashText(els.passwordInput.value);
 
   if (username === AUTH_USER && passwordHash === AUTH_PASSWORD_HASH) {
-    setAuthenticated();
+    setAuthenticated(username);
     return;
   }
 
@@ -465,6 +470,7 @@ async function handleLogin(event) {
 
 function logout() {
   localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
   showLogin();
 }
 
@@ -1286,7 +1292,7 @@ function normalizeSyncUrl(value) {
 }
 
 function syncIsConfigured() {
-  return Boolean(state.profile.syncEnabled && state.profile.syncUrl && state.profile.syncToken);
+  return Boolean(isAuthenticated() && state.profile.syncEnabled && state.profile.syncUrl && state.profile.syncToken);
 }
 
 function syncEndpoint() {
@@ -1296,6 +1302,7 @@ function syncEndpoint() {
 function syncHeaders() {
   return {
     Authorization: `Bearer ${state.profile.syncToken}`,
+    "X-WB-User": localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
     "Content-Type": "application/json"
   };
 }
@@ -1334,6 +1341,7 @@ function mergeSyncedState(localValue, remoteValue) {
   const local = normalizeState(localValue);
   const remote = normalizeState(remoteValue);
   const localSync = {
+    userId: local.profile.userId,
     syncEnabled: local.profile.syncEnabled,
     syncUrl: local.profile.syncUrl,
     syncToken: local.profile.syncToken
@@ -1395,6 +1403,7 @@ async function syncPush({ silent = false } = {}) {
       headers: syncHeaders(),
       body: JSON.stringify({
         updatedBy: state.profile.name || "William",
+        updatedByUserId: localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
         state: publicStateForSync()
       })
     });
@@ -1411,6 +1420,7 @@ async function syncNow() {
   els.syncEnabledInput.checked = true;
   state.profile = {
     ...state.profile,
+    userId: localStorage.getItem(AUTH_USER_KEY) || AUTH_USER,
     syncEnabled: true,
     syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
     syncToken: els.syncTokenInput.value.trim()
