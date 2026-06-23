@@ -607,8 +607,8 @@ h2 {
   height: 100%;
   object-fit: cover;
   transform: scale(1.02);
-  filter: grayscale(1) saturate(0) contrast(0.92) brightness(1.04);
-  opacity: 0.66;
+  filter: none;
+  opacity: 1;
 }
 
 .badge-title {
@@ -654,7 +654,7 @@ h2 {
 }
 
 .badge.is-earned .badge-art {
-  filter: saturate(1.08) contrast(1.04);
+  filter: none;
   opacity: 1;
 }
 

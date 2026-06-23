@@ -978,7 +978,7 @@ function renderBadges(streak, pushBest) {
     },
     {
       el: els.badges.week,
-      imageLocked: "./assets/badges/week-earned.jpg",
+      imageLocked: "./assets/badges/week-locked.jpg",
       imageEarned: "./assets/badges/week-earned.jpg",
       title: "7 dager",
       description: "Hold streaken i en hel uke.",
