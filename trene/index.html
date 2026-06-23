@@ -255,9 +255,11 @@
           </label>
         </section>
         <label>
-          ntfy topic
-          <button class="info-button" type="button" title="Dette er kanalen ntfy bruker for treningspåminnelser. Ikke del den unødvendig." aria-label="Forklaring av ntfy topic.">?</button>
-          <input id="ntfyTopicInput" type="text" autocapitalize="none" spellcheck="false" />
+          <span class="label-row">
+            ntfy topic
+            <button class="info-button" type="button" data-help="Dette er den private ntfy-kanalen Mac mini bruker for treningspåminnelser. Feltet er låst fordi topic skal være fast og ikke deles unødvendig." title="Forklaring av ntfy topic." aria-label="Forklaring av ntfy topic.">?</button>
+          </span>
+          <input id="ntfyTopicInput" type="text" autocapitalize="none" spellcheck="false" readonly aria-readonly="true" />
         </label>
         <label class="check-label">
           <input id="remindersInput" type="checkbox" />
