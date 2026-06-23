@@ -132,15 +132,20 @@ const els = {
   friendEmailInput: document.querySelector("#friendEmailInput"),
   friendRequestStatus: document.querySelector("#friendRequestStatus"),
   requestFriendButton: document.querySelector("#requestFriendButton"),
-  badges: {
-    first: document.querySelector("#badgeFirst"),
-    week: document.querySelector("#badgeWeek"),
-    fifty: document.querySelector("#badgeFifty"),
-    hundred: document.querySelector("#badgeHundred")
-  }
+  badgeDeck: document.querySelector("#badgeDeck"),
+  badgePopover: document.querySelector("#badgePopover"),
+  badgePopoverClose: document.querySelector("#badgePopoverClose"),
+  badgePopoverImage: document.querySelector("#badgePopoverImage"),
+  badgePopoverTitle: document.querySelector("#badgePopoverTitle"),
+  badgePopoverStatus: document.querySelector("#badgePopoverStatus"),
+  badgePopoverDescription: document.querySelector("#badgePopoverDescription"),
+  badgePopoverCriteria: document.querySelector("#badgePopoverCriteria"),
+  badgePopoverProgress: document.querySelector("#badgePopoverProgress"),
+  badgePopoverUnlocked: document.querySelector("#badgePopoverUnlocked")
 };
 
 let state = loadState();
+let renderedBadges = [];
 
 function validExerciseKeys(keys) {
   if (!Array.isArray(keys)) return [...BASE_EXERCISE_KEYS];
@@ -1202,66 +1207,298 @@ function renderFacts() {
   els.factList.innerHTML = factsHtml;
 }
 
-function renderBadges(streak, pushBest) {
-  const badges = [
+function sortedHistoryAscending() {
+  return [...state.history].sort((a, b) =>
+    a.date.localeCompare(b.date) || String(a.updatedAt || "").localeCompare(String(b.updatedAt || ""))
+  );
+}
+
+function bestExerciseMain(key) {
+  const savedStart = exerciseSetting(key).start || 0;
+  return Math.max(savedStart, ...state.history.map((entry) => {
+    if (key === "pushups") return entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0;
+    if (key === "situps") return entry.actual?.situpsPerSet || entry.situpsPerSet || 0;
+    return entry.actual?.exercises?.[key]?.main || 0;
+  }));
+}
+
+function firstDateWhen(predicate) {
+  return sortedHistoryAscending().find(predicate)?.date || "";
+}
+
+function streakUnlockDate(target) {
+  const dates = [...new Set(sortedHistoryAscending().map((entry) => entry.date))];
+  let count = 0;
+  let previous = null;
+
+  for (const date of dates) {
+    const current = dateKeyToLocalDate(date);
+    count = previous && current.getTime() - previous.getTime() === DAY_MS ? count + 1 : 1;
+    if (count >= target) return date;
+    previous = current;
+  }
+
+  return "";
+}
+
+function pairGoalUnlockDate(target) {
+  let bestPush = 0;
+  let bestSit = 0;
+  return firstDateWhen((entry) => {
+    bestPush = Math.max(bestPush, entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0);
+    bestSit = Math.max(bestSit, entry.actual?.situpsPerSet || entry.situpsPerSet || 0);
+    return bestPush >= target && bestSit >= target;
+  });
+}
+
+function proModeUnlockDate() {
+  const pushGoal = exerciseSetting("pushups").goal;
+  const sitGoal = exerciseSetting("situps").goal;
+  let bestPush = 0;
+  let bestSit = 0;
+  return firstDateWhen((entry) => {
+    bestPush = Math.max(bestPush, entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0);
+    bestSit = Math.max(bestSit, entry.actual?.situpsPerSet || entry.situpsPerSet || 0);
+    return bestPush >= pushGoal && bestSit >= sitGoal;
+  });
+}
+
+function thirdExerciseBadgeKey() {
+  return enabledExerciseKeys().find((key) => !BASE_EXERCISE_KEYS.includes(key)) || EXTRA_EXERCISE_KEYS[0];
+}
+
+function exerciseGoalUnlockDate(key) {
+  const target = exerciseSetting(key).goal;
+  return firstDateWhen((entry) => Number(entry.actual?.exercises?.[key]?.main || 0) >= target);
+}
+
+function cumulativeVolumeUnlockDate(target) {
+  let total = 0;
+  return firstDateWhen((entry) => {
+    total += actualExerciseEntries(entry).reduce((sum, exercise) => sum + exercise.total, 0);
+    return total >= target;
+  });
+}
+
+function nthProgressPhotoDate(target) {
+  return allProgressPhotos()[target - 1]?.date || "";
+}
+
+function nthQualifiedWorkoutDate(target, predicate) {
+  let count = 0;
+  return firstDateWhen((entry) => {
+    if (predicate(entry)) count += 1;
+    return count >= target;
+  });
+}
+
+function comebackUnlockDate() {
+  let previousDate = null;
+  return firstDateWhen((entry) => {
+    const current = dateKeyToLocalDate(entry.date);
+    const hadGap = previousDate && current.getTime() - previousDate.getTime() > DAY_MS;
+    previousDate = current;
+    return hadGap;
+  });
+}
+
+function isMorningWorkout(entry) {
+  if (!entry.updatedAt) return false;
+  const hour = new Date(entry.updatedAt).getHours();
+  return Number.isFinite(hour) && hour < 10;
+}
+
+function buildBadges(streak, pairBest) {
+  const pushGoal = exerciseSetting("pushups").goal;
+  const sitGoal = exerciseSetting("situps").goal;
+  const thirdKey = thirdExerciseBadgeKey();
+  const thirdGoal = exerciseSetting(thirdKey).goal;
+  const thirdBest = bestExerciseMain(thirdKey);
+  const photoCount = allProgressPhotos().length;
+  const totalVolume = activeExerciseTotal(state.history);
+  const formMasterCount = state.history.filter((entry) =>
+    ["lett", "passe"].includes(entry.effort) && actualExerciseEntries(entry).some((exercise) => exercise.main > 0)
+  ).length;
+  const morningCount = state.history.filter(isMorningWorkout).length;
+  const proCurrent = Math.min(bestControlledPushupsSet(), pushGoal) + Math.min(bestSitupsSet(), sitGoal);
+  const proTarget = pushGoal + sitGoal;
+
+  return [
     {
-      el: els.badges.first,
-      imageLocked: "./assets/badges/start-locked.jpg",
-      imageEarned: "./assets/badges/start-earned.jpg",
+      id: "first",
       title: "Første økt",
-      description: "Fullfør den første registrerte treningen.",
+      description: "Du har startet programmet og logget første treningsøkt.",
+      criteria: "Fullfør og lagre den første økten.",
       current: Math.min(state.history.length, 1),
       target: 1,
-      unit: "økt"
+      unit: "økt",
+      unlockedDate: sortedHistoryAscending()[0]?.date || "",
+      imageLocked: "./assets/badges/start-locked.jpg",
+      imageEarned: "./assets/badges/start-earned.jpg"
     },
     {
-      el: els.badges.week,
-      imageLocked: "./assets/badges/week-locked.jpg",
-      imageEarned: "./assets/badges/week-earned.jpg",
+      id: "week",
       title: "7 dager",
-      description: "Hold streaken i en hel uke.",
+      description: "En uke med sammenhengende gjennomføring.",
+      criteria: "Fullfør minst én økt hver dag i 7 dager på rad.",
       current: Math.min(streak, 7),
       target: 7,
-      unit: "dager"
+      unit: "dager",
+      unlockedDate: streakUnlockDate(7),
+      imageLocked: "./assets/badges/week-locked.jpg",
+      imageEarned: "./assets/badges/week-earned.jpg"
     },
     {
-      el: els.badges.fifty,
-      imageLocked: "./assets/badges/fifty-locked.jpg",
-      imageEarned: "./assets/badges/fifty-earned.jpg",
+      id: "fifty",
       title: "50 reps",
-      description: "Nå 50 i hovedsett for både pushups og situps.",
-      current: Math.min(pushBest, 50),
+      description: "Halvveis mot hovedmålet i begge grunnøvelsene.",
+      criteria: "Nå 50 i hovedsett for både pushups og situps.",
+      current: Math.min(pairBest, 50),
       target: 50,
-      unit: "reps"
+      unit: "reps",
+      unlockedDate: pairGoalUnlockDate(50),
+      imageLocked: "./assets/badges/fifty-locked.jpg",
+      imageEarned: "./assets/badges/fifty-earned.jpg"
     },
     {
-      el: els.badges.hundred,
-      imageLocked: "./assets/badges/hundred-locked.jpg",
-      imageEarned: "./assets/badges/hundred-earned.jpg",
+      id: "hundred",
       title: "1 × 100",
-      description: "Sluttmålet: 100 gode reps i ett sett.",
-      current: Math.min(pushBest, 100),
+      description: "Sluttmålet: 100 gode reps i ett sammenhengende hovedsett.",
+      criteria: "Nå 100 i hovedsett for både pushups og situps.",
+      current: Math.min(pairBest, 100),
       target: 100,
-      unit: "reps"
+      unit: "reps",
+      unlockedDate: pairGoalUnlockDate(100),
+      imageLocked: "./assets/badges/hundred-locked.jpg",
+      imageEarned: "./assets/badges/hundred-earned.jpg"
+    },
+    {
+      id: "pro-mode",
+      title: "Pro Mode",
+      description: "Begge grunnmålene er slått. Da er basen på plass.",
+      criteria: `Nå målet for både pushups (${pushGoal}) og situps (${sitGoal}).`,
+      current: Math.min(proCurrent, proTarget),
+      target: proTarget,
+      unit: "målpoeng",
+      progressText: `${bestControlledPushupsSet()}/${pushGoal} pushups · ${bestSitupsSet()}/${sitGoal} situps`,
+      unlockedDate: proModeUnlockDate(),
+      imageLocked: "./assets/badges/hundred-locked.jpg",
+      imageEarned: "./assets/badges/hundred-earned.jpg"
+    },
+    {
+      id: "photo-king",
+      title: "Photo King",
+      description: "Du dokumenterer utviklingen, ikke bare øktene.",
+      criteria: "Last opp bilde 3 i bildeprogresjonen.",
+      current: Math.min(photoCount, 3),
+      target: 3,
+      unit: "bilder",
+      unlockedDate: nthProgressPhotoDate(3),
+      imageLocked: "./assets/badges/start-locked.jpg",
+      imageEarned: "./assets/badges/start-earned.jpg"
+    },
+    {
+      id: "trifecta",
+      title: "Trifecta",
+      description: "Du har nådd målet på en tredje øvelse i tillegg til grunnøvelsene.",
+      criteria: `Nå målet for ${exerciseLabel(thirdKey).toLowerCase()} (${thirdGoal}).`,
+      current: Math.min(thirdBest, thirdGoal),
+      target: thirdGoal,
+      unit: thirdKey === "planke" || thirdKey === "sideplanke" ? "sek" : "reps",
+      unlockedDate: exerciseGoalUnlockDate(thirdKey),
+      imageLocked: "./assets/badges/fifty-locked.jpg",
+      imageEarned: "./assets/badges/fifty-earned.jpg"
+    },
+    {
+      id: "iron-streak",
+      title: "Iron Streak",
+      description: "30 dager på rad bygger både kapasitet og viljestyrke.",
+      criteria: "Fullfør minst én økt hver dag i 30 dager på rad.",
+      current: Math.min(streak, 30),
+      target: 30,
+      unit: "dager",
+      unlockedDate: streakUnlockDate(30),
+      imageLocked: "./assets/badges/iron-streak-locked.jpg",
+      imageEarned: "./assets/badges/iron-streak-earned.jpg"
+    },
+    {
+      id: "form-master",
+      title: "Form Master",
+      description: "Kontrollert trening er mer verdt enn raske, stygge repetisjoner.",
+      criteria: "Logg 10 økter med gjennomført øvelse og følelse lett eller passe.",
+      current: Math.min(formMasterCount, 10),
+      target: 10,
+      unit: "økter",
+      unlockedDate: nthQualifiedWorkoutDate(10, (entry) =>
+        ["lett", "passe"].includes(entry.effort) && actualExerciseEntries(entry).some((exercise) => exercise.main > 0)
+      ),
+      imageLocked: "./assets/badges/form-master-locked.jpg",
+      imageEarned: "./assets/badges/form-master-earned.jpg"
+    },
+    {
+      id: "comeback",
+      title: "Comeback",
+      description: "Å starte igjen etter et hull er en egen ferdighet.",
+      criteria: "Fullfør en økt etter minst én dag uten registrert trening.",
+      current: comebackUnlockDate() ? 1 : 0,
+      target: 1,
+      unit: "comeback",
+      unlockedDate: comebackUnlockDate(),
+      imageLocked: "./assets/badges/comeback-locked.jpg",
+      imageEarned: "./assets/badges/comeback-earned.jpg"
+    },
+    {
+      id: "volume-beast",
+      title: "Volume Beast",
+      description: "Total treningsmengde bygger arbeidskapasitet over tid.",
+      criteria: "Samle 5000 totale repetisjoner/sekunder på tvers av øvelser.",
+      current: Math.min(totalVolume, 5000),
+      target: 5000,
+      unit: "totalt",
+      unlockedDate: cumulativeVolumeUnlockDate(5000),
+      imageLocked: "./assets/badges/volume-beast-locked.jpg",
+      imageEarned: "./assets/badges/volume-beast-earned.jpg"
+    },
+    {
+      id: "morning-warrior",
+      title: "Morning Warrior",
+      description: "Morgenøkter gjør treningen ferdig før dagen rekker å bli travel.",
+      criteria: "Logg 10 økter før klokken 10:00.",
+      current: Math.min(morningCount, 10),
+      target: 10,
+      unit: "morgenøkter",
+      unlockedDate: nthQualifiedWorkoutDate(10, isMorningWorkout),
+      imageLocked: "./assets/badges/week-locked.jpg",
+      imageEarned: "./assets/badges/week-earned.jpg"
     }
   ];
+}
 
-  badges.forEach((badge) => {
-    const earned = badge.current >= badge.target;
-    const progress = Math.min(100, Math.round((badge.current / badge.target) * 100));
-    badge.el.classList.toggle("is-earned", earned);
-    badge.el.setAttribute("aria-label", `${badge.title}: ${earned ? "oppnådd" : `${badge.current} av ${badge.target} ${badge.unit}`}`);
-    badge.el.innerHTML = `
-      <span class="badge-art-wrap">
-        <img class="badge-art" src="${earned ? badge.imageEarned : badge.imageLocked}" alt="" loading="lazy" />
-      </span>
-      <span class="badge-status">${earned ? "Oppnådd" : "Låst"}</span>
-      <span class="badge-title">${badge.title}</span>
-      <span class="badge-description">${badge.description}</span>
-      <span class="badge-progress-text">${badge.current}/${badge.target} ${badge.unit}</span>
-      <span class="badge-progress" aria-hidden="true"><span style="width: ${progress}%"></span></span>
-    `;
-  });
+function renderBadges(streak, pairBest) {
+  renderedBadges = buildBadges(streak, pairBest);
+  const pages = [renderedBadges.slice(0, 4), renderedBadges.slice(4, 8), renderedBadges.slice(8, 12)];
+
+  els.badgeDeck.innerHTML = pages.map((page, index) => `
+    <div class="badge-page" aria-label="Badge-side ${index + 1} av 3">
+      ${page.map((badge) => {
+        const earned = Boolean(badge.unlockedDate) || badge.current >= badge.target;
+        const progress = Math.min(100, Math.round((badge.current / badge.target) * 100));
+        const progressText = badge.progressText || `${badge.current}/${badge.target} ${badge.unit}`;
+        return `
+          <button class="badge ${earned ? "is-earned" : ""}" type="button" data-badge-id="${badge.id}" aria-label="${badge.title}: ${earned ? "oppnådd" : progressText}">
+            <span class="badge-art-wrap">
+              <img class="badge-art" src="${earned ? badge.imageEarned : badge.imageLocked}" alt="" loading="lazy" />
+            </span>
+            <span class="badge-status">${earned ? "Oppnådd" : "Låst"}</span>
+            <span class="badge-title">${badge.title}</span>
+            <span class="badge-description">${badge.description}</span>
+            <span class="badge-progress-text">${progressText}</span>
+            <span class="badge-progress" aria-hidden="true"><span style="width: ${progress}%"></span></span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  `).join("");
 }
 
 function renderHistory() {
@@ -1601,6 +1838,42 @@ function showExerciseManager() {
 
 function hideExerciseManager() {
   els.exerciseManagerPopover.hidden = true;
+}
+
+function showBadgeDetails(id) {
+  const badge = renderedBadges.find((item) => item.id === id);
+  if (!badge) return;
+  const earned = Boolean(badge.unlockedDate) || badge.current >= badge.target;
+  const progressText = badge.progressText || `${badge.current}/${badge.target} ${badge.unit}`;
+
+  els.badgePopoverTitle.textContent = badge.title;
+  els.badgePopoverImage.src = earned ? badge.imageEarned : badge.imageLocked;
+  els.badgePopoverImage.alt = badge.title;
+  els.badgePopoverStatus.textContent = earned ? "Oppnådd" : "Ikke låst opp ennå";
+  els.badgePopoverDescription.textContent = badge.description;
+  els.badgePopoverCriteria.textContent = badge.criteria;
+  els.badgePopoverProgress.textContent = progressText;
+  els.badgePopoverUnlocked.textContent = earned && badge.unlockedDate
+    ? `Låst opp ${formatDate(badge.unlockedDate)}.`
+    : earned
+      ? "Låst opp."
+      : "Fortsett å logge økter for å låse den opp.";
+  hideHelp();
+  els.badgePopover.hidden = false;
+}
+
+function hideBadgeDetails() {
+  els.badgePopover.hidden = true;
+}
+
+function handleBadgeClick(event) {
+  const badge = event.target.closest("[data-badge-id]");
+  if (!badge) return;
+  showBadgeDetails(badge.dataset.badgeId);
+}
+
+function handleBadgeOverlayClick(event) {
+  if (event.target === els.badgePopover) hideBadgeDetails();
 }
 
 function renderExerciseManager() {
@@ -2129,6 +2402,9 @@ els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
 els.helpPopoverClose.addEventListener("click", hideHelp);
 els.helpPopover.addEventListener("click", handleHelpOverlayClick);
+els.badgeDeck.addEventListener("click", handleBadgeClick);
+els.badgePopoverClose.addEventListener("click", hideBadgeDetails);
+els.badgePopover.addEventListener("click", handleBadgeOverlayClick);
 els.exerciseGuideClose.addEventListener("click", hideExerciseGuide);
 els.exerciseGuidePopover.addEventListener("click", handleExerciseGuideOverlayClick);
 els.exerciseManagerClose.addEventListener("click", hideExerciseManager);
@@ -2140,6 +2416,7 @@ document.addEventListener("click", handleHelpClick);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     hideHelp();
+    hideBadgeDetails();
     hideExerciseGuide();
     hideExerciseManager();
   }

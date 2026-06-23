@@ -130,11 +130,14 @@
         <p id="feedbackBody"></p>
       </section>
 
-      <section class="badge-strip" aria-label="Merker">
-        <div class="badge" id="badgeFirst">Første økt</div>
-        <div class="badge" id="badgeWeek">7 dager</div>
-        <div class="badge" id="badgeFifty">50 reps</div>
-        <div class="badge" id="badgeHundred">1 × 100</div>
+      <section class="badge-section" aria-label="Merker">
+        <div class="section-heading tight">
+          <div>
+            <h2>Badges</h2>
+            <p class="swipe-cue">← Sveip begge veier →</p>
+          </div>
+        </div>
+        <div class="badge-deck" id="badgeDeck"></div>
       </section>
 
       <nav class="tab-bar" aria-label="Visninger">
@@ -311,6 +314,29 @@
         </div>
         <button class="icon-button" id="helpPopoverClose" type="button" aria-label="Lukk hjelpetekst">×</button>
       </div>
+    </div>
+    <div class="badge-popover" id="badgePopover" role="dialog" aria-modal="true" aria-labelledby="badgePopoverTitle" hidden>
+      <article class="badge-popover-card">
+        <div class="badge-popover-header">
+          <div>
+            <p class="eyebrow">Badge</p>
+            <h2 id="badgePopoverTitle">Badge</h2>
+          </div>
+          <button class="icon-button" id="badgePopoverClose" type="button" aria-label="Lukk badge-forklaring">×</button>
+        </div>
+        <img id="badgePopoverImage" class="badge-popover-image" alt="" />
+        <p id="badgePopoverStatus" class="badge-popover-status"></p>
+        <p id="badgePopoverDescription"></p>
+        <div class="badge-popover-meta">
+          <strong>Kriterium</strong>
+          <span id="badgePopoverCriteria"></span>
+        </div>
+        <div class="badge-popover-meta">
+          <strong>Status</strong>
+          <span id="badgePopoverProgress"></span>
+        </div>
+        <p id="badgePopoverUnlocked" class="badge-popover-unlocked"></p>
+      </article>
     </div>
     <div class="exercise-guide-popover" id="exerciseGuidePopover" role="dialog" aria-modal="true" aria-labelledby="exerciseGuideTitle" hidden>
       <article class="exercise-guide-card">
