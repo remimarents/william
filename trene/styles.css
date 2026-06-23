@@ -607,8 +607,8 @@ h2 {
   height: 100%;
   object-fit: cover;
   transform: scale(1.02);
-  filter: saturate(0.64) contrast(0.96);
-  opacity: 0.72;
+  filter: grayscale(1) saturate(0) contrast(0.92) brightness(1.04);
+  opacity: 0.66;
 }
 
 .badge-title {
