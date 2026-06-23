@@ -962,7 +962,8 @@ function renderBadges(streak, pushBest) {
   const badges = [
     {
       el: els.badges.first,
-      icon: "Start",
+      imageLocked: "./assets/badges/start-locked.jpg",
+      imageEarned: "./assets/badges/start-earned.jpg",
       title: "Første økt",
       description: "Fullfør den første registrerte treningen.",
       current: Math.min(state.history.length, 1),
@@ -971,7 +972,8 @@ function renderBadges(streak, pushBest) {
     },
     {
       el: els.badges.week,
-      icon: "7",
+      imageLocked: "./assets/badges/week-earned.jpg",
+      imageEarned: "./assets/badges/week-earned.jpg",
       title: "7 dager",
       description: "Hold streaken i en hel uke.",
       current: Math.min(streak, 7),
@@ -980,7 +982,8 @@ function renderBadges(streak, pushBest) {
     },
     {
       el: els.badges.fifty,
-      icon: "50",
+      imageLocked: "./assets/badges/fifty-locked.jpg",
+      imageEarned: "./assets/badges/fifty-earned.jpg",
       title: "50 reps",
       description: "Nå 50 i hovedsett for både pushups og situps.",
       current: Math.min(pushBest, 50),
@@ -989,7 +992,8 @@ function renderBadges(streak, pushBest) {
     },
     {
       el: els.badges.hundred,
-      icon: "100",
+      imageLocked: "./assets/badges/hundred-locked.jpg",
+      imageEarned: "./assets/badges/hundred-earned.jpg",
       title: "1 × 100",
       description: "Sluttmålet: 100 gode reps i ett sett.",
       current: Math.min(pushBest, 100),
@@ -1004,8 +1008,10 @@ function renderBadges(streak, pushBest) {
     badge.el.classList.toggle("is-earned", earned);
     badge.el.setAttribute("aria-label", `${badge.title}: ${earned ? "oppnådd" : `${badge.current} av ${badge.target} ${badge.unit}`}`);
     badge.el.innerHTML = `
+      <span class="badge-art-wrap">
+        <img class="badge-art" src="${earned ? badge.imageEarned : badge.imageLocked}" alt="" loading="lazy" />
+      </span>
       <span class="badge-status">${earned ? "Oppnådd" : "Låst"}</span>
-      <span class="badge-icon" aria-hidden="true">${badge.icon}</span>
       <span class="badge-title">${badge.title}</span>
       <span class="badge-description">${badge.description}</span>
       <span class="badge-progress-text">${badge.current}/${badge.target} ${badge.unit}</span>
