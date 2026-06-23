@@ -174,13 +174,15 @@
           <h2>Statistikk og grafer <button class="info-button" type="button" title="Statistikk viser både gjennomføring, total treningsmengde og fremgang i hovedsettet." aria-label="Forklaring av statistikk og grafer.">?</button></h2>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
-        <article class="chart-card">
+        <article class="chart-card chart-deck-card">
           <div class="section-heading tight">
-            <h3>Pushups per økt <button class="info-button" type="button" title="Grafen følger hovedsettet, fordi målet er 1 × 100." aria-label="Forklaring av pushups-grafen.">?</button></h3>
+            <div>
+              <h3>Øvelser per økt <button class="info-button" type="button" title="Sveip sidelengs for å se graf for hver øvelse. Grafene følger hovedsettet, fordi målet er 1 × 100." aria-label="Forklaring av øvelsesgrafer.">?</button></h3>
+              <p class="swipe-cue">← Sveip begge veier →</p>
+            </div>
             <span class="chart-label">siste 10</span>
           </div>
-          <div class="bar-chart" id="graphBars" aria-label="Graf over pushups per økt"></div>
-          <p class="hint" id="graphCaption">Fullfør noen økter for å bygge grafen.</p>
+          <div class="exercise-chart-deck" id="exerciseGraphDeck" aria-label="Sveipbare grafer per øvelse"></div>
         </article>
         <article class="photo-progress-card">
           <div class="section-heading tight">

@@ -76,8 +76,7 @@ const els = {
   nextPushGoal: document.querySelector("#nextPushGoal"),
   situpStatus: document.querySelector("#situpStatus"),
   statsGrid: document.querySelector("#statsGrid"),
-  graphBars: document.querySelector("#graphBars"),
-  graphCaption: document.querySelector("#graphCaption"),
+  exerciseGraphDeck: document.querySelector("#exerciseGraphDeck"),
   progressPhotoInput: document.querySelector("#progressPhotoInput"),
   progressPhotoHint: document.querySelector("#progressPhotoHint"),
   photoGallery: document.querySelector("#photoGallery"),
@@ -810,7 +809,7 @@ function renderStats() {
     </article>
   `).join("");
 
-  renderGraph(entries);
+  renderExerciseGraphs(entries);
   renderPhotoGallery();
 }
 
@@ -856,29 +855,64 @@ function renderPhotoGallery() {
       `;
 }
 
-function renderGraph(entries) {
-  const recent = [...entries].reverse().slice(-10);
-  const max = Math.max(1, ...recent.map((entry) => entry.actual?.pushupsPerSet || 0));
+function renderExerciseGraphs(entries) {
+  const exercises = [
+    {
+      title: "Pushups",
+      unit: "pushups",
+      help: "Grafen viser hovedsettet for pushups per fullførte økt.",
+      value: (entry) => entry.actual?.pushupsPerSet || 0
+    },
+    {
+      title: "Situps",
+      unit: "situps",
+      help: "Grafen viser hovedsettet for situps per fullførte økt.",
+      value: (entry) => entry.actual?.situpsPerSet || 0
+    }
+  ];
 
-  if (!recent.length) {
-    els.graphBars.innerHTML = "";
-    els.graphCaption.textContent = "Fullfør noen økter for å bygge grafen.";
-    return;
-  }
+  els.exerciseGraphDeck.innerHTML = exercises.map((exercise) => renderExerciseGraphCard(entries, exercise)).join("");
+}
 
-  els.graphBars.innerHTML = recent.map((entry) => {
-    const mainSet = entry.actual?.pushupsPerSet || 0;
-    const height = Math.max(10, Math.round((mainSet / max) * 100));
-    const day = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" }).format(dateKeyToLocalDate(entry.date));
-    return `
-      <div class="bar-item">
-        <span class="bar-value">${mainSet}</span>
-        <span class="bar" style="height: ${height}%"></span>
-        <span class="bar-day">${day}</span>
+function renderExerciseGraphCard(entries, exercise) {
+  const recent = [...entries]
+    .reverse()
+    .filter((entry) => exercise.value(entry) > 0)
+    .slice(-10);
+  const max = Math.max(1, ...recent.map((entry) => exercise.value(entry)));
+
+  const graph = recent.length
+    ? recent.map((entry) => {
+        const mainSet = exercise.value(entry);
+        const height = Math.max(10, Math.round((mainSet / max) * 100));
+        const day = new Intl.DateTimeFormat("no-NO", { day: "numeric", month: "short" }).format(dateKeyToLocalDate(entry.date));
+        return `
+          <div class="bar-item">
+            <span class="bar-value">${mainSet}</span>
+            <span class="bar" style="height: ${height}%"></span>
+            <span class="bar-day">${day}</span>
+          </div>
+        `;
+      }).join("")
+    : `<div class="empty-chart">Fullfør noen økter med ${exercise.unit} for å bygge grafen.</div>`;
+
+  const best = recent.length ? Math.max(...recent.map((entry) => exercise.value(entry))) : 0;
+  const latest = recent.length ? exercise.value(recent[recent.length - 1]) : 0;
+
+  return `
+    <article class="exercise-chart-card">
+      <div class="section-heading tight">
+        <h4>${exercise.title} ${infoButton(exercise.help)}</h4>
+        <span class="chart-label">siste ${recent.length || 10}</span>
       </div>
-    `;
-  }).join("");
-  els.graphCaption.textContent = "Grafen viser beste hovedsett med pushups per fullførte økt.";
+      <div class="exercise-chart-stats">
+        <span>Siste: <strong>${latest}</strong></span>
+        <span>Beste: <strong>${best}</strong></span>
+      </div>
+      <div class="bar-chart" aria-label="Graf over ${exercise.title.toLowerCase()} per økt">${graph}</div>
+      <p class="hint">${exercise.help}</p>
+    </article>
+  `;
 }
 
 function renderMotivation(workout) {

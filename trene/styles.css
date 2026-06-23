@@ -783,11 +783,54 @@ h2 {
 }
 
 .chart-card h3,
+.exercise-chart-card h4,
 .photo-progress-card h3,
 .friend-request h3,
 .facts-card h3 {
   margin: 0;
   font-size: 1.05rem;
+}
+
+.exercise-chart-deck {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 92%);
+  gap: 12px;
+  margin-top: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.exercise-chart-deck::-webkit-scrollbar {
+  display: none;
+}
+
+.exercise-chart-card {
+  scroll-snap-align: start;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--hairline);
+  background: rgba(248, 250, 252, 0.78);
+}
+
+.exercise-chart-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exercise-chart-stats span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: white;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+  border: 1px solid var(--hairline);
 }
 
 .swipe-cue {
@@ -940,6 +983,18 @@ h2 {
     #f8fafc;
   background-size: 100% 42px;
   border: 1px solid var(--hairline);
+}
+
+.empty-chart {
+  grid-column: 1 / -1;
+  align-self: center;
+  justify-self: center;
+  max-width: 220px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .bar-item {
