@@ -12,6 +12,20 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const BASE_EXERCISE_KEYS = ["pushups", "situps"];
 const EXTRA_EXERCISE_KEYS = ["kneboy", "utfall", "planke", "sideplanke", "rygghev", "mountain", "dips", "hollow", "burpees", "roing"];
 const ALL_EXERCISE_KEYS = [...BASE_EXERCISE_KEYS, ...EXTRA_EXERCISE_KEYS];
+const EXERCISE_PROGRAM_DEFAULTS = {
+  pushups: { start: 15, goal: 100, supportSets: 2, unit: "reps" },
+  situps: { start: 15, goal: 100, supportSets: 2, unit: "reps" },
+  kneboy: { start: 15, goal: 100, supportSets: 2, unit: "reps" },
+  utfall: { start: 8, goal: 50, supportSets: 2, unit: "reps/side" },
+  planke: { start: 30, goal: 180, supportSets: 2, unit: "sek" },
+  sideplanke: { start: 20, goal: 120, supportSets: 2, unit: "sek/side" },
+  rygghev: { start: 12, goal: 60, supportSets: 2, unit: "reps" },
+  mountain: { start: 20, goal: 100, supportSets: 2, unit: "reps/side" },
+  dips: { start: 8, goal: 50, supportSets: 2, unit: "reps" },
+  hollow: { start: 20, goal: 120, supportSets: 2, unit: "sek" },
+  burpees: { start: 5, goal: 30, supportSets: 2, unit: "reps" },
+  roing: { start: 3, goal: 15, supportSets: 2, unit: "reps" }
+};
 
 const defaultState = {
   version: 1,
@@ -30,7 +44,8 @@ const defaultState = {
     syncEnabled: true,
     syncUrl: DEFAULT_SYNC_URL,
     syncToken: "",
-    enabledExercises: BASE_EXERCISE_KEYS
+    enabledExercises: BASE_EXERCISE_KEYS,
+    exerciseSettings: structuredClone(EXERCISE_PROGRAM_DEFAULTS)
   },
   history: [],
   photos: [],
@@ -105,10 +120,7 @@ const els = {
   nameInput: document.querySelector("#nameInput"),
   toggleCapacityButton: document.querySelector("#toggleCapacityButton"),
   capacityFields: document.querySelector("#capacityFields"),
-  pushBaseInput: document.querySelector("#pushBaseInput"),
-  pushTestMaxInput: document.querySelector("#pushTestMaxInput"),
-  situpBaseInput: document.querySelector("#situpBaseInput"),
-  setsInput: document.querySelector("#setsInput"),
+  exerciseSettingsFields: document.querySelector("#exerciseSettingsFields"),
   ntfyTopicInput: document.querySelector("#ntfyTopicInput"),
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
@@ -137,6 +149,34 @@ function validExerciseKeys(keys) {
 
 function enabledExerciseKeys() {
   return validExerciseKeys(state.profile.enabledExercises);
+}
+
+function normalizeExerciseSettings(profile = {}) {
+  const saved = profile.exerciseSettings || {};
+  return Object.fromEntries(ALL_EXERCISE_KEYS.map((key) => {
+    const defaults = EXERCISE_PROGRAM_DEFAULTS[key];
+    const value = saved[key] || {};
+    const legacyStart = key === "pushups"
+      ? profile.pushBase
+      : key === "situps"
+      ? profile.situpBase
+      : undefined;
+    const legacyGoal = (key === "pushups" || key === "situps") ? profile.goal : undefined;
+    const start = clamp(Number(value.start ?? legacyStart ?? defaults.start), 0, 500);
+    const goal = Math.max(start || 1, clamp(Number(value.goal ?? legacyGoal ?? defaults.goal), 1, 500));
+    const supportSets = clamp(Number(value.supportSets ?? defaults.supportSets), 0, 4);
+    return [key, {
+      ...defaults,
+      start,
+      goal,
+      supportSets,
+      unit: defaults.unit
+    }];
+  }));
+}
+
+function exerciseSetting(key) {
+  return state.profile.exerciseSettings?.[key] || EXERCISE_PROGRAM_DEFAULTS[key];
 }
 
 const exerciseGuides = {
@@ -508,13 +548,18 @@ function loadState() {
 function normalizeState(value) {
   const savedProfile = value.profile || {};
   const hasSavedPushTestMax = Object.prototype.hasOwnProperty.call(savedProfile, "pushTestMax");
+  const exerciseSettings = normalizeExerciseSettings(savedProfile);
   const migratedProfile = {
     ...savedProfile,
     pushTestMax: hasSavedPushTestMax ? savedProfile.pushTestMax : defaultState.profile.pushTestMax,
     situpBase: !hasSavedPushTestMax && savedProfile.situpBase === 0
       ? defaultState.profile.situpBase
       : savedProfile.situpBase,
-    enabledExercises: validExerciseKeys(savedProfile.enabledExercises)
+    enabledExercises: validExerciseKeys(savedProfile.enabledExercises),
+    exerciseSettings,
+    pushBase: exerciseSettings.pushups.start,
+    situpBase: exerciseSettings.situps.start,
+    goal: exerciseSettings.pushups.goal
   };
 
   return {
@@ -653,18 +698,18 @@ function currentStreak() {
 
 function bestPushupsSet() {
   return Math.max(
-    state.profile.pushBase,
+    exerciseSetting("pushups").start,
     state.profile.pushTestMax || 0,
     ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0)
   );
 }
 
 function bestControlledPushupsSet() {
-  return Math.max(state.profile.pushBase, ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0));
+  return Math.max(exerciseSetting("pushups").start, ...state.history.map((entry) => entry.actual?.pushupsPerSet || entry.pushupsPerSet || 0));
 }
 
 function bestSitupsSet() {
-  return Math.max(state.profile.situpBase, ...state.history.map((entry) => entry.actual?.situpsPerSet || entry.situpsPerSet || 0));
+  return Math.max(exerciseSetting("situps").start, ...state.history.map((entry) => entry.actual?.situpsPerSet || entry.situpsPerSet || 0));
 }
 
 function bestMainSetPair() {
@@ -713,47 +758,77 @@ function bestActiveExerciseMain() {
   return Math.max(0, ...state.history.flatMap((entry) => actualExerciseEntries(entry).map((exercise) => exercise.main)));
 }
 
+function bestExerciseMain(key) {
+  if (key === "pushups") return bestControlledPushupsSet();
+  if (key === "situps") return bestSitupsSet();
+  return Math.max(
+    exerciseSetting(key).start,
+    ...state.history.map((entry) => Number(entry.actual?.exercises?.[key]?.main || 0))
+  );
+}
+
 function workoutForToday() {
   const doneCount = state.history.length;
   const isRecovery = doneCount > 0 && (doneCount + 1) % 7 === 0;
-  const pushupsPerSet = nextMainSetTarget(state.profile.pushBase, bestControlledPushupsSet(), doneCount, isRecovery);
-  const situpsPerSet = state.profile.situpBase > 0
-    ? nextMainSetTarget(state.profile.situpBase, bestSitupsSet(), doneCount, isRecovery)
-    : 0;
-  const pushSupport = supportPlan(pushupsPerSet);
-  const sitSupport = supportPlan(situpsPerSet || state.profile.situpBase);
+  const exerciseTargets = Object.fromEntries(ALL_EXERCISE_KEYS.map((key) => [key, plannedExerciseForToday(key, doneCount, isRecovery)]));
+  const pushTarget = exerciseTargets.pushups;
+  const sitTarget = exerciseTargets.situps;
 
   return {
     sets: 1,
-    pushupsPerSet,
-    pushupsTotal: pushupsPerSet + pushSupport.total,
-    pushSupport,
-    situpsPerSet,
-    situpsTotal: situpsPerSet ? situpsPerSet + sitSupport.total : 0,
-    sitSupport,
+    pushupsPerSet: pushTarget.main,
+    pushupsTotal: pushTarget.total,
+    pushSupport: pushTarget.support,
+    situpsPerSet: sitTarget.main,
+    situpsTotal: sitTarget.total,
+    sitSupport: sitTarget.support,
+    exerciseTargets,
     isRecovery
   };
 }
 
-function nextMainSetTarget(startValue, bestValue, doneCount, isRecovery) {
+function plannedExerciseForToday(key, doneCount, isRecovery) {
+  const setting = exerciseSetting(key);
+  const main = nextMainSetTarget(setting.start, bestExerciseMain(key), doneCount, isRecovery, setting.goal);
+  const support = supportPlan(main, setting.supportSets);
+  return {
+    key,
+    main,
+    total: main + support.total,
+    support,
+    unit: setting.unit,
+    goal: setting.goal
+  };
+}
+
+function nextMainSetTarget(startValue, bestValue, doneCount, isRecovery, goal = state.profile.goal) {
   const progressStep = doneCount > 0 && doneCount % 2 === 0 ? 1 : 0;
   const target = isRecovery
     ? Math.max(startValue, bestValue - 3)
     : Math.max(startValue, bestValue + progressStep);
-  return Math.min(state.profile.goal, target);
+  return Math.min(goal, target);
 }
 
-function supportPlan(mainSetTarget) {
+function supportPlan(mainSetTarget, preferredSets = 2) {
   if (!mainSetTarget) return { sets: 0, reps: 0, total: 0 };
-  if (mainSetTarget >= 90) return { sets: 1, reps: Math.max(10, Math.round(mainSetTarget * 0.25)), total: Math.max(10, Math.round(mainSetTarget * 0.25)) };
-  if (mainSetTarget >= 70) return { sets: 1, reps: Math.round(mainSetTarget * 0.35), total: Math.round(mainSetTarget * 0.35) };
-  if (mainSetTarget >= 45) return { sets: 2, reps: Math.round(mainSetTarget * 0.4), total: Math.round(mainSetTarget * 0.4) * 2 };
-  if (mainSetTarget >= 30) return { sets: 2, reps: Math.round(mainSetTarget * 0.5), total: Math.round(mainSetTarget * 0.5) * 2 };
+  if (!preferredSets) return { sets: 0, reps: 0, total: 0 };
+  if (mainSetTarget >= 90) return { sets: Math.min(1, preferredSets), reps: Math.max(10, Math.round(mainSetTarget * 0.25)), total: Math.max(10, Math.round(mainSetTarget * 0.25)) };
+  if (mainSetTarget >= 70) return { sets: Math.min(1, preferredSets), reps: Math.round(mainSetTarget * 0.35), total: Math.round(mainSetTarget * 0.35) };
+  if (mainSetTarget >= 45) {
+    const sets = Math.min(2, preferredSets);
+    const reps = Math.round(mainSetTarget * 0.4);
+    return { sets, reps, total: reps * sets };
+  }
+  if (mainSetTarget >= 30) {
+    const sets = Math.min(2, preferredSets);
+    const reps = Math.round(mainSetTarget * 0.5);
+    return { sets, reps, total: reps * sets };
+  }
   const earlySupportReps = Math.max(8, Math.round(mainSetTarget * 0.55));
   return {
-    sets: 2,
+    sets: preferredSets,
     reps: earlySupportReps,
-    total: earlySupportReps * 2
+    total: earlySupportReps * preferredSets
   };
 }
 
@@ -834,13 +909,16 @@ function renderExercises(workout) {
 
 function exerciseTargetForToday(key, workout) {
   const guide = exerciseGuides[key];
+  const target = workout.exerciseTargets?.[key] || plannedExerciseForToday(key, state.history.length, workout.isRecovery);
+  const support = target.support;
+  const detail = supportText(target.main, support, target.unit, target.goal);
   if (key === "pushups") {
     return {
       key,
       name: "Pushups",
-      detail: supportText(workout.pushupsPerSet, workout.pushSupport),
-      mainValue: workout.pushupsPerSet,
-      totalValue: workout.pushupsTotal,
+      detail,
+      mainValue: target.main,
+      totalValue: target.total,
       mainId: "actualPushInput",
       totalId: "actualPushTotalInput"
     };
@@ -849,9 +927,9 @@ function exerciseTargetForToday(key, workout) {
     return {
       key,
       name: "Situps",
-      detail: workout.situpsPerSet > 0 ? supportText(workout.situpsPerSet, workout.sitSupport) : "Test startnivå: skriv hovedsett og total.",
-      mainValue: workout.situpsPerSet > 0 ? workout.situpsPerSet : "",
-      totalValue: workout.situpsTotal > 0 ? workout.situpsTotal : "",
+      detail,
+      mainValue: target.main,
+      totalValue: target.total,
       mainId: "actualSitupInput",
       totalId: "actualSitupTotalInput"
     };
@@ -859,9 +937,9 @@ function exerciseTargetForToday(key, workout) {
   return {
     key,
     name: guide?.title || key,
-    detail: "Ekstra øvelse: registrer det du faktisk gjorde. Bruk reps, eller sekunder for statiske øvelser.",
-    mainValue: "",
-    totalValue: "",
+    detail,
+    mainValue: target.main,
+    totalValue: target.total,
     mainId: `actual-${key}-main`,
     totalId: `actual-${key}-total`
   };
@@ -871,9 +949,10 @@ function infoButton(message, light = false) {
   return `<button class="info-button${light ? " info-button--light" : ""}" type="button" data-help="${message}" title="${message}" aria-label="${message}">?</button>`;
 }
 
-function supportText(mainSet, support) {
-  if (!support?.sets) return `Hovedsett: ${mainSet}. Ingen støtte-sett i dag.`;
-  return `Hovedsett: ${mainSet}. Støtte etter pause: ${support.sets} × ${support.reps}. Målet er etter hvert å slå dette sammen mot 1 × 100.`;
+function supportText(mainSet, support, unit = "reps", goal = 100) {
+  const unitText = unit === "reps" ? "" : ` ${unit}`;
+  if (!support?.sets) return `Hovedsett: ${mainSet}${unitText}. Ingen støtte-sett i dag. Mål: 1 × ${goal}${unitText}.`;
+  return `Hovedsett: ${mainSet}${unitText}. Støtte etter pause: ${support.sets} × ${support.reps}${unitText}. Målet er etter hvert å slå dette sammen mot 1 × ${goal}${unitText}.`;
 }
 
 function renderPhotoCheckin() {
@@ -1258,7 +1337,7 @@ function completeWorkout() {
   const loggedExercises = Object.values(actualExercises);
   const bestLoggedMain = Math.max(0, ...loggedExercises.map((exercise) => exercise.main || 0));
   const streakBefore = currentStreak();
-  const hitTargetBonus = activeKeys.includes("pushups") && actualPushupsPerSet >= workout.pushupsPerSet ? 10 : 0;
+  const hitTargetBonus = activeKeys.some((key) => Number(actualExercises[key]?.main || 0) >= Number(workout.exerciseTargets?.[key]?.main || 0)) ? 10 : 0;
   const xp = 20 + Math.min(30, bestLoggedMain) + hitTargetBonus + (streakBefore >= 2 ? 10 : 0);
   const now = new Date().toISOString();
 
@@ -1275,7 +1354,8 @@ function completeWorkout() {
       pushupsPerSet: workout.pushupsPerSet,
       pushupsTotal: workout.pushupsTotal,
       situpsPerSet: workout.situpsPerSet,
-      situpsTotal: workout.situpsTotal
+      situpsTotal: workout.situpsTotal,
+      exercises: workout.exerciseTargets
     },
     actual: {
       pushupsPerSet: actualPushupsPerSet,
@@ -1311,15 +1391,59 @@ function readActualExercises() {
   return result;
 }
 
+function renderExerciseSettingsFields() {
+  els.exerciseSettingsFields.innerHTML = ALL_EXERCISE_KEYS.map((key) => {
+    const guide = exerciseGuides[key];
+    const setting = exerciseSetting(key);
+    const unit = setting.unit === "reps" ? "reps" : setting.unit;
+    return `
+      <article class="exercise-setting-card">
+        <div>
+          <strong>${guide?.title || key}</strong>
+          <p>Forslag: hovedsett + støtte-sett, målet er 1 × målverdien.</p>
+        </div>
+        <div class="exercise-setting-grid">
+          <label>
+            Start (${unit})
+            <input data-exercise-setting="${key}" data-exercise-setting-field="start" type="number" inputmode="numeric" min="0" max="500" value="${setting.start}" />
+          </label>
+          <label>
+            Mål (${unit})
+            <input data-exercise-setting="${key}" data-exercise-setting-field="goal" type="number" inputmode="numeric" min="1" max="500" value="${setting.goal}" />
+          </label>
+          <label>
+            Støtte-sett
+            <input data-exercise-setting="${key}" data-exercise-setting-field="supportSets" type="number" inputmode="numeric" min="0" max="4" value="${setting.supportSets}" />
+          </label>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function exerciseSettingsFromInputs() {
+  const settings = normalizeExerciseSettings(state.profile);
+  document.querySelectorAll("[data-exercise-setting][data-exercise-setting-field]").forEach((input) => {
+    const key = input.dataset.exerciseSetting;
+    const field = input.dataset.exerciseSettingField;
+    if (!settings[key]) return;
+    if (field === "start") settings[key].start = clamp(Number(input.value), 0, 500);
+    if (field === "goal") settings[key].goal = clamp(Number(input.value), 1, 500);
+    if (field === "supportSets") settings[key].supportSets = clamp(Number(input.value), 0, 4);
+  });
+
+  Object.keys(settings).forEach((key) => {
+    settings[key].goal = Math.max(settings[key].start || 1, settings[key].goal);
+  });
+  return settings;
+}
+
 function openSettings() {
   els.nameInput.value = state.profile.name;
-  els.pushBaseInput.value = state.profile.pushBase;
-  els.pushTestMaxInput.value = state.profile.pushTestMax || 29;
-  els.situpBaseInput.value = state.profile.situpBase;
-  els.setsInput.value = state.profile.sets;
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
+  renderExerciseSettingsFields();
   settingsSnapshot = JSON.stringify(settingsValuesFromInputs());
   setSyncStatus(syncIsConfigured()
     ? "Sikkerhetskopi av treningsdata er oppdatert."
@@ -1331,26 +1455,29 @@ function openSettings() {
 function closeCapacityFields() {
   els.capacityFields.hidden = true;
   els.toggleCapacityButton.setAttribute("aria-expanded", "false");
-  els.toggleCapacityButton.textContent = "Endre startnivå";
+  els.toggleCapacityButton.textContent = "Endre startnivå og mål";
 }
 
 function toggleCapacityFields() {
   const willOpen = els.capacityFields.hidden;
   els.capacityFields.hidden = !willOpen;
   els.toggleCapacityButton.setAttribute("aria-expanded", String(willOpen));
-  els.toggleCapacityButton.textContent = willOpen ? "Skjul startnivå" : "Endre startnivå";
+  els.toggleCapacityButton.textContent = willOpen ? "Skjul startnivå og mål" : "Endre startnivå og mål";
 }
 
 let settingsAutoSaveTimer = null;
 let settingsSnapshot = "";
 
 function settingsValuesFromInputs() {
+  const exerciseSettings = exerciseSettingsFromInputs();
   return {
     name: els.nameInput.value.trim() || "William",
-    pushBase: clamp(Number(els.pushBaseInput.value), 1, 100),
-    pushTestMax: clamp(Number(els.pushTestMaxInput.value), 1, 100),
-    situpBase: clamp(Number(els.situpBaseInput.value), 0, 100),
-    sets: clamp(Number(els.setsInput.value), 1, 5),
+    pushBase: exerciseSettings.pushups.start,
+    pushTestMax: clamp(Number(state.profile.pushTestMax || 29), 1, 100),
+    situpBase: exerciseSettings.situps.start,
+    sets: 1,
+    goal: exerciseSettings.pushups.goal,
+    exerciseSettings,
     ntfyTopic: sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC,
     remindersEnabled: els.remindersInput.checked,
     reminderTime: els.reminderTimeInput.value || "19:30",
@@ -1987,11 +2114,8 @@ els.exerciseManagerButton.addEventListener("click", showExerciseManager);
 els.openExerciseManagerFromSettings.addEventListener("click", showExerciseManager);
 els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
 els.nameInput.addEventListener("input", scheduleSettingsAutoSave);
+els.exerciseSettingsFields.addEventListener("change", persistSettingsFromInputs);
 [
-  els.pushBaseInput,
-  els.pushTestMaxInput,
-  els.situpBaseInput,
-  els.setsInput,
   els.remindersInput,
   els.reminderTimeInput
 ].forEach((input) => input.addEventListener("change", persistSettingsFromInputs));

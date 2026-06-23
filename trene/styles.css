@@ -1458,6 +1458,48 @@ h2 {
   line-height: 1.35;
 }
 
+.exercise-settings-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.exercise-setting-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(22, 184, 166, 0.18);
+  border-radius: 12px;
+  background: white;
+}
+
+.exercise-setting-card strong,
+.exercise-setting-card p {
+  margin: 0;
+}
+
+.exercise-setting-card p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.exercise-setting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.exercise-setting-grid label {
+  gap: 5px;
+  font-size: 0.72rem;
+}
+
+.exercise-setting-grid input {
+  min-height: 42px;
+  padding: 0 10px;
+}
+
 .friend-request {
   display: grid;
   gap: 12px;
@@ -1590,6 +1632,10 @@ input[readonly] {
 
   .exercise-inputs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .exercise-setting-grid {
+    grid-template-columns: 1fr;
   }
 
   .photo-gallery {

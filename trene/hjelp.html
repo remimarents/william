@@ -93,6 +93,30 @@
         border: 2px solid rgba(255, 255, 255, 0.5);
       }
 
+      .hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .close-guide-button {
+        min-height: 44px;
+        padding: 0 16px;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        color: white;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+        backdrop-filter: blur(14px);
+      }
+
+      .close-guide-button:focus-visible {
+        outline: 3px solid rgba(255, 255, 255, 0.6);
+        outline-offset: 3px;
+      }
+
       .eyebrow {
         margin: 0 0 7px;
         color: inherit;
@@ -570,7 +594,10 @@
             <p class="eyebrow">Bruksanvisning</p>
             <h1>WB Trene</h1>
           </div>
-          <img class="app-icon" src="./assets/icon-192.png" alt="" />
+          <div class="hero-actions">
+            <button class="close-guide-button" id="closeGuideButton" type="button">Lukk</button>
+            <img class="app-icon" src="./assets/icon-192.png" alt="" />
+          </div>
         </div>
         <div>
           <p class="lead">Slik bruker du appen for å bygge daglig trening, følge progresjon og jobbe mot ett sammenhengende sett på 100 gode pushups og situps.</p>
@@ -981,6 +1008,12 @@
       });
 
       closeButton.addEventListener("click", closeExercise);
+      document.querySelector("#closeGuideButton")?.addEventListener("click", () => {
+        window.close();
+        window.setTimeout(() => {
+          window.location.href = "./";
+        }, 80);
+      });
       overlay.addEventListener("click", (event) => {
         if (event.target === overlay) closeExercise();
       });

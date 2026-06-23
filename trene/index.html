@@ -234,25 +234,10 @@
           Navn
           <input id="nameInput" type="text" autocomplete="given-name" maxlength="24" />
         </label>
-        <button class="text-button" id="toggleCapacityButton" type="button" aria-expanded="false" aria-controls="capacityFields">Endre startnivå</button>
+        <button class="text-button" id="toggleCapacityButton" type="button" aria-expanded="false" aria-controls="capacityFields">Endre startnivå og mål</button>
         <section class="capacity-fields" id="capacityFields" hidden>
-          <p>Startnivå er allerede satt opp. Endre bare hvis tallene var feil.</p>
-          <label>
-            Pushups startmål, per sett
-            <input id="pushBaseInput" type="number" inputmode="numeric" min="1" max="100" />
-          </label>
-          <label>
-            Testet toppsett pushups
-            <input id="pushTestMaxInput" type="number" inputmode="numeric" min="1" max="100" />
-          </label>
-          <label>
-            Situps startmål, per sett
-            <input id="situpBaseInput" type="number" inputmode="numeric" min="0" max="100" />
-          </label>
-          <label>
-            Antall sett
-            <input id="setsInput" type="number" inputmode="numeric" min="1" max="5" />
-          </label>
+          <p>Endre startnivå og mål bare hvis tallene ikke passer. Appen lager dagens forslag fra disse verdiene.</p>
+          <div class="exercise-settings-fields" id="exerciseSettingsFields"></div>
         </section>
         <label>
           <span class="label-row">
