@@ -112,8 +112,6 @@ const els = {
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
   testNtfyButton: document.querySelector("#testNtfyButton"),
-  syncUrlInput: document.querySelector("#syncUrlInput"),
-  syncNowButton: document.querySelector("#syncNowButton"),
   syncStatus: document.querySelector("#syncStatus"),
   friendFields: document.querySelector("#friendFields"),
   friendNameInput: document.querySelector("#friendNameInput"),
@@ -1259,8 +1257,9 @@ function openSettings() {
   els.ntfyTopicInput.value = state.profile.ntfyTopic;
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
-  els.syncUrlInput.value = state.profile.syncUrl || DEFAULT_SYNC_URL;
-  els.syncStatus.textContent = syncIsConfigured() ? "Synk er konfigurert." : "Synk er ikke konfigurert.";
+  setSyncStatus(syncIsConfigured()
+    ? "Sikkerhetskopi av treningsdata er oppdatert."
+    : "Sikkerhetskopi er ikke koblet til ennå. Logg inn på nytt hvis dette vedvarer.");
   closeCapacityFields();
   els.settingsDialog.showModal();
 }
@@ -1292,7 +1291,7 @@ function saveSettings(event) {
     remindersEnabled: els.remindersInput.checked,
     reminderTime: els.reminderTimeInput.value || "19:30",
     syncEnabled: true,
-    syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
+    syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
     syncToken: state.profile.syncToken || ""
   };
 
@@ -1626,10 +1625,10 @@ async function syncPull({ silent = false } = {}) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       render();
     }
-    if (!silent) setSyncStatus("Synk hentet.");
+    setSyncStatus("Sikkerhetskopi av treningsdata er oppdatert.");
     return true;
   } catch {
-    if (!silent) setSyncStatus("Kunne ikke hente synk.");
+    setSyncStatus("Sikkerhetskopi er ikke oppdatert akkurat nå.");
     return false;
   }
 }
@@ -1648,10 +1647,10 @@ async function syncPush({ silent = false } = {}) {
       })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    if (!silent) setSyncStatus("Synk sendt.");
+    setSyncStatus("Sikkerhetskopi av treningsdata er oppdatert.");
     return true;
   } catch {
-    if (!silent) setSyncStatus("Kunne ikke sende synk.");
+    setSyncStatus("Sikkerhetskopi er ikke oppdatert akkurat nå.");
     return false;
   }
 }
@@ -1661,7 +1660,7 @@ async function syncNow() {
     ...state.profile,
     userId: localStorage.getItem(AUTH_USER_KEY) || AUTH_USER,
     syncEnabled: true,
-    syncUrl: normalizeSyncUrl(els.syncUrlInput.value),
+    syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
     syncToken: ""
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -1879,7 +1878,6 @@ els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
 els.saveSettingsButton.addEventListener("click", saveSettings);
 els.exportButton.addEventListener("click", exportData);
 els.testNtfyButton.addEventListener("click", testNtfy);
-els.syncNowButton.addEventListener("click", syncNow);
 els.photoInput.addEventListener("change", handlePhotoChange);
 els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);

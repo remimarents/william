@@ -280,15 +280,9 @@
 
         <section class="sync-settings">
           <div>
-            <h3>Synkronisering</h3>
-            <p>Brukes for at Williams økter skal vises på flere telefoner. LocalStorage brukes fortsatt som lokal backup.</p>
+            <h3>Sikkerhetskopi</h3>
+            <p id="syncStatus" class="sync-status" role="status">Sjekker sikkerhetskopi...</p>
           </div>
-          <label>
-            Synk-server URL
-            <input id="syncUrlInput" type="url" autocapitalize="none" spellcheck="false" placeholder="https://..." />
-          </label>
-          <button class="text-button" id="syncNowButton" type="button">Synk nå</button>
-          <p class="sync-status" id="syncStatus" role="status"></p>
         </section>
 
         <section class="friend-request">
