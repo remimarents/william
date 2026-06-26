@@ -522,6 +522,10 @@ const factDeck = [
     text: "Svetting betyr at kroppen kjøler seg ned. Det er ikke det samme som fettforbrenning. Bedre tegn er at du trener jevnlig, blir sterkere, tåler mer arbeid og holder vanen over tid."
   },
   {
+    title: "Du må gå veldig lenge for å gå fra et skolebrød!",
+    text: "Et stort skolebrød kan fort være 600-700 kcal. Hvis du går rolig, kan det bety rundt 3,5-4 timer gange for å bruke like mye energi. Så spør deg gjerne hva som er viktigst, når du holder et i hånden :-)"
+  },
+  {
     title: "Hva skaper vinnere?",
     text: "Ikke talent. Ikke bra utstyr. Ikke at alt går perfekt. De som blir best har én ting til felles: de jobber mer konsistent. Dagen etter en dårlig treningsdag fortsetter de. Selv litt trening når du er sliten, syk eller noe skjer, er bedre enn å droppe ut av programmet. Det farligste er ikke én dårlig økt. Det du skal passe deg for, er å misse økten etterpå også."
   }
