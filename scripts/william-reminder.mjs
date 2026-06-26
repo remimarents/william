@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 
+import { execFile } from "node:child_process";
+import { readFile, writeFile } from "node:fs/promises";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+
 const config = {
-  topic: process.env.NTFY_TOPIC || "william-trene-wb-8v4k9m2p",
   appUrl: process.env.APP_URL || "https://marents.no/trening/",
   timezone: process.env.TZ_NAME || "Europe/Oslo",
   defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "19:30",
-  statePath: process.env.STATE_PATH || `${process.env.HOME}/.william-trene-reminder-state.json`
+  statePath: process.env.STATE_PATH || `${process.env.HOME}/.william-trene-reminder-state.json`,
+  sshHost: process.env.MARENTS_SSH_HOST || "marents",
+  remoteProgressDir: process.env.TRAINING_PROGRESS_DIR || "/home/marentsn/.ordreise-sync/trening-progress",
+  testRecipient: process.env.IMESSAGE_RECIPIENT || ""
 };
 
 const args = new Set(process.argv.slice(2));
@@ -32,52 +40,6 @@ function localDate(date = new Date()) {
   return `${byType.year}-${byType.month}-${byType.day}`;
 }
 
-function pickMessage(dateKey) {
-  const seed = [...dateKey].reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return messages[seed % messages.length];
-}
-
-async function fetchRecentNtfyMessages() {
-  const url = `https://ntfy.sh/${encodeURIComponent(config.topic)}/json?poll=1&since=72h`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`ntfy poll failed: ${response.status} ${response.statusText}`);
-  }
-
-  const text = await response.text();
-  return text
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => JSON.parse(line))
-    .filter((message) => message.event === "message");
-}
-
-function normalizeReminderConfig(value = {}) {
-  const reminderTime = typeof value.reminderTime === "string" && /^\d{2}:\d{2}$/.test(value.reminderTime)
-    ? value.reminderTime
-    : config.defaultReminderTime;
-  return {
-    enabled: value.enabled !== false,
-    reminderTime
-  };
-}
-
-function latestReminderConfig(messagesToCheck, state) {
-  const fallback = normalizeReminderConfig(state.reminderConfig);
-  return messagesToCheck
-    .filter((message) => message.title === "Trene-config" && message.message)
-    .sort((a, b) => (a.time || 0) - (b.time || 0))
-    .reduce((current, message) => {
-      try {
-        const parsed = JSON.parse(message.message);
-        if (parsed.type !== "william-trene-config") return current;
-        return normalizeReminderConfig(parsed);
-      } catch {
-        return current;
-      }
-    }, fallback);
-}
-
 function localTimeMinutes(date = new Date()) {
   const parts = new Intl.DateTimeFormat("sv-SE", {
     timeZone: config.timezone,
@@ -89,108 +51,192 @@ function localTimeMinutes(date = new Date()) {
   return Number(byType.hour) * 60 + Number(byType.minute);
 }
 
+function pickMessage(dateKey, accountEmail = "") {
+  const seed = [...`${dateKey}:${accountEmail}`].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return messages[seed % messages.length];
+}
+
+function normalizeReminderTime(value) {
+  return typeof value === "string" && /^\d{2}:\d{2}$/.test(value) ? value : config.defaultReminderTime;
+}
+
 function reminderIsDue(reminderTime) {
-  const [hours, minutes] = reminderTime.split(":").map(Number);
+  const [hours, minutes] = normalizeReminderTime(reminderTime).split(":").map(Number);
   return localTimeMinutes() >= hours * 60 + minutes;
 }
 
-function hasCompletionForToday(messagesToCheck, today) {
-  return messagesToCheck.some((message) => {
-    const messageDate = message.time ? localDate(new Date(message.time * 1000)) : "";
-    const title = message.title || "";
-    const body = message.message || "";
-    return messageDate === today && (title === "Bra jobbet" || body.includes(`Økt fullført ${today}`));
-  });
+function sanitizeRecipient(value) {
+  return String(value || "").trim().replace(/[^\p{L}\p{N}@+._ -]/gu, "").slice(0, 90);
+}
+
+function userLabel(state) {
+  return state?.profile?.name || state?.accountEmail || "Trening";
+}
+
+function completedForDate(state, dateKey) {
+  const history = Array.isArray(state?.history) ? state.history : [];
+  return history.some((entry) => entry && entry.date === dateKey);
+}
+
+function latestEntryForDate(state, dateKey) {
+  const history = Array.isArray(state?.history) ? state.history : [];
+  return history
+    .filter((entry) => entry && entry.date === dateKey)
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))[0] || null;
+}
+
+function formatCompletionSummary(state, dateKey) {
+  const entry = latestEntryForDate(state, dateKey);
+  const exercises = entry?.actual?.exercises || {};
+  const summary = Object.entries(exercises)
+    .filter(([, value]) => Number(value?.total || 0) > 0)
+    .map(([key, value]) => `${value.total} ${key}`)
+    .join(", ");
+  return summary ? `Registrert: ${summary}.` : "Økten er registrert.";
 }
 
 async function readState() {
   try {
-    const file = await import("node:fs/promises");
-    return JSON.parse(await file.readFile(config.statePath, "utf8"));
+    return JSON.parse(await readFile(config.statePath, "utf8"));
   } catch {
     return {};
   }
 }
 
 async function writeState(state) {
-  const file = await import("node:fs/promises");
-  await file.writeFile(config.statePath, `${JSON.stringify(state, null, 2)}\n`);
+  await writeFile(config.statePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
-async function publishReminder(today) {
-  const body = test
-    ? "Dette er en test fra Mac mini-påminneren."
-    : pickMessage(today);
+async function fetchRemoteTrainingStates() {
+  const remoteScript = [
+    `dir=${shellQuote(config.remoteProgressDir)}`,
+    "[ -d \"$dir\" ] || exit 0",
+    "find \"$dir\" -maxdepth 1 -type f -name '*.json' -print0 | while IFS= read -r -d '' file; do",
+    "  printf '%s\\t' \"$(basename \"$file\")\"",
+    "  base64 < \"$file\" | tr -d '\\n'",
+    "  printf '\\n'",
+    "done"
+  ].join("\n");
+  const { stdout } = await execFileAsync("ssh", [config.sshHost, remoteScript], { maxBuffer: 20 * 1024 * 1024 });
+  return stdout
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [fileName, encoded] = line.split("\t");
+      try {
+        return {
+          fileName,
+          state: JSON.parse(Buffer.from(encoded || "", "base64").toString("utf8"))
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
 
-  const headers = {
-    Title: test ? "Trene-test fra Mac mini" : "Trene i dag?",
-    Tags: test ? "computer,muscle" : "muscle,alarm_clock",
-    Priority: test ? "default" : "high",
-    Click: config.appUrl
-  };
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`;
+}
+
+async function sendImessage(recipient, body) {
+  const cleanRecipient = sanitizeRecipient(recipient);
+  if (!cleanRecipient) return false;
 
   if (dryRun) {
-    console.log(JSON.stringify({ dryRun: true, topic: config.topic, headers, body }, null, 2));
+    console.log(JSON.stringify({ dryRun: true, recipient: cleanRecipient, body }, null, 2));
     return true;
   }
 
-  const response = await fetch(`https://ntfy.sh/${encodeURIComponent(config.topic)}`, {
-    method: "POST",
-    headers,
-    body
-  });
-
-  if (!response.ok) {
-    throw new Error(`ntfy publish failed: ${response.status} ${response.statusText}`);
-  }
-
+  const script = `
+on run argv
+  set targetRecipient to item 1 of argv
+  set bodyText to item 2 of argv
+  tell application "Messages"
+    set targetService to 1st service whose service type = iMessage
+    set targetBuddy to buddy targetRecipient of targetService
+    send bodyText to targetBuddy
+  end tell
+end run
+`;
+  await execFileAsync("osascript", ["-e", script, cleanRecipient, body], { maxBuffer: 1024 * 1024 });
   return true;
 }
 
-async function main() {
+async function handleQueuedTests(remoteStates, reminderState) {
+  let sentCount = 0;
+  reminderState.testRequests = reminderState.testRequests || {};
+
+  for (const { state } of remoteStates) {
+    const email = String(state.accountEmail || state.profile?.userId || "").toLowerCase();
+    const requestedAt = String(state.notifications?.imessageTestRequestedAt || "");
+    const alreadySentAt = reminderState.testRequests[email] || "";
+    const recipient = sanitizeRecipient(state.profile?.imessageRecipient);
+    if (!email || !requestedAt || requestedAt <= alreadySentAt || !recipient) continue;
+
+    const body = `Test fra Trening: Mac mini kan sende iMessage-påminnelser til ${userLabel(state)}. ${config.appUrl}`;
+    await sendImessage(recipient, body);
+    reminderState.testRequests[email] = requestedAt;
+    sentCount += 1;
+  }
+
+  return sentCount;
+}
+
+async function handleDailyReminders(remoteStates, reminderState) {
   const today = localDate();
-  const state = await readState();
+  let sentCount = 0;
+  reminderState.dailyReminders = reminderState.dailyReminders || {};
+
+  for (const { state } of remoteStates) {
+    const profile = state.profile || {};
+    const email = String(state.accountEmail || profile.userId || "").toLowerCase();
+    const recipient = sanitizeRecipient(profile.imessageRecipient);
+    const reminderTime = normalizeReminderTime(profile.reminderTime);
+    const key = `${email || recipient}:${today}`;
+    if (!email || !recipient) continue;
+    if (profile.remindersEnabled === false) continue;
+    if (!force && reminderState.dailyReminders[key]) continue;
+    if (!force && !reminderIsDue(reminderTime)) continue;
+    if (!force && completedForDate(state, today)) {
+      reminderState.lastSkippedCompleted = { email, date: today, summary: formatCompletionSummary(state, today) };
+      continue;
+    }
+
+    const body = `Trening: ${pickMessage(today, email)} ${config.appUrl}`;
+    await sendImessage(recipient, body);
+    reminderState.dailyReminders[key] = new Date().toISOString();
+    sentCount += 1;
+  }
+
+  return sentCount;
+}
+
+async function sendManualTest(remoteStates) {
+  const target =
+    sanitizeRecipient(config.testRecipient) ||
+    remoteStates.map(({ state }) => sanitizeRecipient(state.profile?.imessageRecipient)).find(Boolean);
+  if (!target) {
+    throw new Error("Mangler iMessage-mottaker. Sett IMESSAGE_RECIPIENT eller legg mottaker i Trening-innstillinger.");
+  }
+  await sendImessage(target, `Test fra Mac mini-påminneren for Trening. ${config.appUrl}`);
+  console.log(`${dryRun ? "dry-run test prepared" : "test iMessage sent"} to ${target}`);
+}
+
+async function main() {
+  const reminderState = await readState();
+  const remoteStates = await fetchRemoteTrainingStates();
 
   if (test) {
-    await publishReminder(today);
-    console.log("test notification sent");
+    await sendManualTest(remoteStates);
     return;
   }
 
-  if (!force && state.lastReminderSent === today) {
-    console.log(`reminder already sent for ${today}`);
-    return;
-  }
+  const testCount = await handleQueuedTests(remoteStates, reminderState);
+  const reminderCount = await handleDailyReminders(remoteStates, reminderState);
 
-  const recentMessages = await fetchRecentNtfyMessages();
-  const reminderConfig = latestReminderConfig(recentMessages, state);
-  state.reminderConfig = reminderConfig;
-
-  if (!reminderConfig.enabled) {
-    console.log("reminders disabled by app config");
-    await writeState(state);
-    return;
-  }
-
-  if (!force && !reminderIsDue(reminderConfig.reminderTime)) {
-    console.log(`not due yet; reminder time is ${reminderConfig.reminderTime}`);
-    await writeState(state);
-    return;
-  }
-
-  if (!force && hasCompletionForToday(recentMessages, today)) {
-    console.log(`workout already completed for ${today}`);
-    state.lastSkippedCompleted = today;
-    await writeState(state);
-    return;
-  }
-
-  await publishReminder(today);
-  if (!dryRun) {
-    state.lastReminderSent = today;
-    await writeState(state);
-  }
-  console.log(`${dryRun ? "dry-run reminder checked" : "reminder sent"} for ${today}`);
+  if (!dryRun) await writeState(reminderState);
+  console.log(`${dryRun ? "dry-run checked" : "checked"} ${remoteStates.length} training users; ${testCount} tests, ${reminderCount} reminders`);
 }
 
 main().catch((error) => {

@@ -206,13 +206,14 @@ Forklaringen åpnes som et tydelig overlay. Trykk `x` eller utenfor kortet for �
 
 I innstillinger kan påminnelser styres.
 
-Påminnelsene bruker ntfy/Mac mini-oppsettet. Tidspunktet bestemmer når du skal få varsel dersom økten ikke er gjort.
+Påminnelsene bruker Mac mini og iMessage. Tidspunktet bestemmer når Mac mini skal sjekke serveren og sende melding dersom økten ikke er gjort.
 
 Hvis påminnelsen ikke fungerer:
 
 1. Sjekk at påminnelser er aktivert.
-2. Sjekk tidspunktet.
-3. Trykk `Test ntfy`.
+2. Sjekk iMessage-mottakeren.
+3. Sjekk tidspunktet.
+4. Trykk `Test iMessage`.
 
 ## 14. Innstillinger
 
@@ -221,7 +222,7 @@ Innstillinger inneholder:
 - navn
 - lenke til denne bruksanvisningen
 - påminnelser
-- ntfy-test
+- iMessage-test
 - treningspartner
 - eksport
 

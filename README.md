@@ -14,7 +14,7 @@ Publisert på Marents.no fra mappen `trene/`:
 - situps kan settes senere i innstillinger
 - synkronisert historikk via felles Marents-konto, med `localStorage` som lokal cache
 - PWA med hjemskjermikon og enkel offline-cache
-- Mac mini-påminner via ntfy hvis dagens økt ikke er fullført
+- Mac mini-påminner via iMessage hvis dagens økt ikke er fullført
 
 ## Lokal kjøring
 
@@ -26,15 +26,15 @@ python3 -m http.server 4173
 
 ## Mac mini-påminner
 
-Appen sender en ntfy-melding med tittelen `Bra jobbet` når brukeren fullfører dagens økt. Når innstillinger lagres, sender appen også valgt påminnelsestid som en `Trene-config`-melding. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet sjekker ntfy-topicens siste meldinger og sender bare påminnelse hvis valgt tid er passert og dagens fullført-melding mangler.
+Appen lagrer iMessage-mottaker, påminnelsestid og fullførte økter i den server-synkede treningsstaten. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet leser treningsdata fra `~/.ordreise-sync/trening-progress/` på Marents-serveren via SSH og sender iMessage lokalt med Meldinger-appen bare hvis valgt tid er passert og dagens økt mangler.
 
-Topic: `william-trene-wb-8v4k9m2p`
+Mac mini må være innlogget med Meldinger/iMessage, og Terminal/osascript må ha lov til å styre Meldinger i macOS Personvern og sikkerhet.
 
 Manuell test:
 
 ```bash
 node scripts/william-reminder.mjs --dry-run
-node scripts/william-reminder.mjs --test
+IMESSAGE_RECIPIENT="+47..." node scripts/william-reminder.mjs --test
 ```
 
 Launchd installeres fra `launchd/com.remimarents.william-trene-reminder.plist`.

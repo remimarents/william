@@ -7,7 +7,6 @@ const LEGACY_SYNC_SESSION_KEY = "william-trene-sync-session-v1";
 const AUTH_API = "/spill/api/";
 const TRAINING_API = "/trening/api/";
 const APP_URL = "https://marents.no/trening/";
-const DEFAULT_NTFY_TOPIC = "william-trene-wb-8v4k9m2p";
 const FRIEND_REQUEST_PHONE = "91666666";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BASE_EXERCISE_KEYS = ["pushups", "situps"];
@@ -38,7 +37,7 @@ const defaultState = {
     situpBase: 15,
     sets: 2,
     goal: 100,
-    ntfyTopic: DEFAULT_NTFY_TOPIC,
+    imessageRecipient: "",
     remindersEnabled: true,
     reminderTime: "19:30",
     photoEvery: 10,
@@ -124,10 +123,10 @@ const els = {
   toggleCapacityButton: document.querySelector("#toggleCapacityButton"),
   capacityFields: document.querySelector("#capacityFields"),
   exerciseSettingsFields: document.querySelector("#exerciseSettingsFields"),
-  ntfyTopicInput: document.querySelector("#ntfyTopicInput"),
+  imessageRecipientInput: document.querySelector("#imessageRecipientInput"),
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
-  testNtfyButton: document.querySelector("#testNtfyButton"),
+  testImessageButton: document.querySelector("#testImessageButton"),
   syncStatus: document.querySelector("#syncStatus"),
   friendFields: document.querySelector("#friendFields"),
   friendNameInput: document.querySelector("#friendNameInput"),
@@ -1664,7 +1663,6 @@ function completeWorkout() {
   state.pendingPhoto = null;
   saveState();
   render();
-  sendCompletionMessage(actualExercises);
 }
 
 function readActualExercises() {
@@ -1726,7 +1724,7 @@ function exerciseSettingsFromInputs() {
 
 function openSettings() {
   els.nameInput.value = state.profile.name;
-  els.ntfyTopicInput.value = state.profile.ntfyTopic;
+  els.imessageRecipientInput.value = state.profile.imessageRecipient || "";
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
   renderExerciseSettingsFields();
@@ -1764,7 +1762,7 @@ function settingsValuesFromInputs() {
     sets: 1,
     goal: exerciseSettings.pushups.goal,
     exerciseSettings,
-    ntfyTopic: sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC,
+    imessageRecipient: sanitizeImessageRecipient(els.imessageRecipientInput.value),
     remindersEnabled: els.remindersInput.checked,
     reminderTime: els.reminderTimeInput.value || "19:30",
     syncEnabled: true,
@@ -1777,7 +1775,7 @@ function persistSettingsFromInputs() {
   const nextProfile = settingsValuesFromInputs();
   const nextSnapshot = JSON.stringify(nextProfile);
   if (nextSnapshot === settingsSnapshot) return;
-  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
+  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}|${state.profile.imessageRecipient || ""}`;
   state.profile = {
     ...state.profile,
     ...nextProfile
@@ -1785,8 +1783,8 @@ function persistSettingsFromInputs() {
   settingsSnapshot = nextSnapshot;
 
   saveState();
-  const nextReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}`;
-  if (previousReminderConfig !== nextReminderConfig) sendReminderConfig();
+  const nextReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}|${state.profile.imessageRecipient || ""}`;
+  if (previousReminderConfig !== nextReminderConfig) syncPush({ silent: true });
   render();
 }
 
@@ -2179,108 +2177,29 @@ async function syncNow() {
   if (pulled) await syncPush();
 }
 
-function sanitizeTopic(value) {
-  return value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+function sanitizeImessageRecipient(value) {
+  return String(value || "").trim().replace(/[^\p{L}\p{N}@+._ -]/gu, "").slice(0, 90);
 }
 
-async function sendNtfy({ title, message, tags = "muscle", priority = "default", delay = "" }) {
-  const topic = sanitizeTopic(state.profile.ntfyTopic);
-  if (!topic) return false;
+async function requestImessageTest() {
+  persistSettingsFromInputs();
+  if (!state.profile.imessageRecipient) {
+    els.testImessageButton.textContent = "Mangler mottaker";
+    window.setTimeout(() => {
+      els.testImessageButton.textContent = "Test iMessage";
+    }, 2200);
+    return;
+  }
 
-  const headers = {
-    Title: title,
-    Tags: tags,
-    Priority: priority,
-    Click: APP_URL
+  state.notifications = {
+    ...state.notifications,
+    imessageTestRequestedAt: new Date().toISOString()
   };
-
-  if (delay) headers.Delay = delay;
-
-  try {
-    const response = await fetch(`https://ntfy.sh/${topic}`, {
-      method: "POST",
-      headers,
-      body: message
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-async function scheduleReminderIfNeeded() {
-  if (!state.profile.remindersEnabled || completedToday()) return;
-  const today = isoDate();
-  if (state.notifications.scheduledFor === today) return;
-  const delay = reminderDelay();
-
-  const ok = await sendNtfy({
-    title: "Trene i dag?",
-    message: "Hvis økten ikke er gjort ennå: ta bare dagens mål rolig og trykk Fullfør etterpå.",
-    tags: "muscle,alarm_clock",
-    priority: "default",
-    delay
-  });
-
-  if (ok) {
-    state.notifications.scheduledFor = today;
-    saveState();
-  }
-}
-
-function reminderDelay() {
-  const [hours, minutes] = state.profile.reminderTime.split(":").map(Number);
-  const target = new Date();
-  target.setHours(hours || 19, minutes || 30, 0, 0);
-  const diffMs = target.getTime() - Date.now();
-  if (diffMs <= 0) return "";
-  const minutesUntil = Math.max(1, Math.round(diffMs / 60000));
-  return `${minutesUntil}m`;
-}
-
-function sendCompletionMessage(actualExercises) {
-  if (!state.profile.remindersEnabled) return;
-
-  const streak = currentStreak();
-  const summary = Object.entries(actualExercises)
-    .filter(([, value]) => Number(value?.total || 0) > 0)
-    .map(([key, value]) => `${value.total} ${exerciseLabel(key).toLowerCase()}`)
-    .join(" og ");
-  const message = `Økt fullført ${isoDate()}: ${summary || "treningsøkten er logget"}. Streak: ${streak} dager.`;
-
-  sendNtfy({
-    title: "Bra jobbet",
-    message,
-    tags: "muscle,white_check_mark",
-    priority: "low"
-  });
-}
-
-function sendReminderConfig() {
-  sendNtfy({
-    title: "Trene-config",
-    message: JSON.stringify({
-      type: "william-trene-config",
-      enabled: state.profile.remindersEnabled,
-      reminderTime: state.profile.reminderTime
-    }),
-    tags: "gear",
-    priority: "min"
-  });
-}
-
-async function testNtfy() {
-  const previousTopic = state.profile.ntfyTopic;
-  state.profile.ntfyTopic = sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC;
-  const ok = await sendNtfy({
-    title: "Trene-test",
-    message: "Dette er en test fra treningsappen.",
-    tags: "muscle"
-  });
-  state.profile.ntfyTopic = previousTopic;
-  els.testNtfyButton.textContent = ok ? "Test sendt" : "Kunne ikke sende";
+  saveState();
+  const ok = await syncPush({ silent: true });
+  els.testImessageButton.textContent = ok ? "Test står i kø" : "Kunne ikke lagre";
   window.setTimeout(() => {
-    els.testNtfyButton.textContent = "Test ntfy";
+    els.testImessageButton.textContent = "Test iMessage";
   }, 2200);
 }
 
@@ -2420,11 +2339,12 @@ els.toggleCapacityButton.addEventListener("click", toggleCapacityFields);
 els.nameInput.addEventListener("input", scheduleSettingsAutoSave);
 els.exerciseSettingsFields.addEventListener("change", persistSettingsFromInputs);
 [
+  els.imessageRecipientInput,
   els.remindersInput,
   els.reminderTimeInput
 ].forEach((input) => input.addEventListener("change", persistSettingsFromInputs));
 els.exportButton.addEventListener("click", exportData);
-els.testNtfyButton.addEventListener("click", testNtfy);
+els.testImessageButton.addEventListener("click", requestImessageTest);
 els.photoInput.addEventListener("change", handlePhotoChange);
 els.progressPhotoInput.addEventListener("change", handleProgressPhotoChange);
 els.requestFriendButton.addEventListener("click", requestFriendAccount);
