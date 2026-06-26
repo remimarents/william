@@ -179,6 +179,16 @@ select {
   letter-spacing: 0;
 }
 
+.account-line {
+  margin: 0 0 4px;
+  color: inherit;
+  opacity: 0.76;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 h1,
 h2,
 p {

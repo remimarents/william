@@ -1,4 +1,5 @@
 const STORAGE_KEY = "william-trene-v1";
+const USER_STATE_PREFIX = `${STORAGE_KEY}:user:`;
 const AUTH_STORAGE_KEY = "ordreise-auth";
 const LEGACY_AUTH_KEY = "william-trene-auth-v1";
 const LEGACY_AUTH_USER_KEY = "william-trene-user-v1";
@@ -29,6 +30,7 @@ const EXERCISE_PROGRAM_DEFAULTS = {
 
 const defaultState = {
   version: 1,
+  accountEmail: "",
   profile: {
     name: "Bruker",
     pushBase: 15,
@@ -79,6 +81,7 @@ const els = {
   usernameInput: document.querySelector("#usernameInput"),
   passwordInput: document.querySelector("#passwordInput"),
   loginError: document.querySelector("#loginError"),
+  accountLabel: document.querySelector("#accountLabel"),
   todayLabel: document.querySelector("#todayLabel"),
   streakDays: document.querySelector("#streakDays"),
   xpTotal: document.querySelector("#xpTotal"),
@@ -516,15 +519,9 @@ function isAuthenticated() {
 
 function setAuthenticated(auth) {
   saveAuth(auth);
-  state.profile = {
-    ...state.profile,
-    userId: auth.email,
-    syncEnabled: true,
-    syncUrl: "",
-    syncToken: ""
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  adoptStateForAuth(auth);
   showApp();
+  render();
 }
 
 function showApp() {
@@ -576,13 +573,53 @@ function logout() {
   showLogin();
 }
 
-function loadState() {
+function normalizeAccountEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function stateKeyForEmail(email) {
+  return `${USER_STATE_PREFIX}${encodeURIComponent(normalizeAccountEmail(email))}`;
+}
+
+function currentStateKey() {
+  const email = normalizeAccountEmail(loadAuth()?.email || state?.accountEmail || state?.profile?.userId);
+  return email ? stateKeyForEmail(email) : STORAGE_KEY;
+}
+
+function loadState(key = STORAGE_KEY) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const parsed = JSON.parse(localStorage.getItem(key));
     return parsed?.version === 1 ? normalizeState(parsed) : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
+}
+
+function persistState() {
+  const authEmail = normalizeAccountEmail(loadAuth()?.email);
+  if (authEmail) state.accountEmail = authEmail;
+  localStorage.setItem(currentStateKey(), JSON.stringify(state));
+}
+
+function adoptStateForAuth(auth) {
+  const email = normalizeAccountEmail(auth?.email);
+  const savedForUser = email ? localStorage.getItem(stateKeyForEmail(email)) : null;
+  if (savedForUser) {
+    state = loadState(stateKeyForEmail(email));
+  } else {
+    const legacy = normalizeState(state);
+    const legacyOwner = normalizeAccountEmail(legacy.accountEmail || legacy.profile.userId);
+    state = !legacyOwner || legacyOwner === email ? legacy : structuredClone(defaultState);
+  }
+  state.accountEmail = email;
+  state.profile = {
+    ...state.profile,
+    userId: email,
+    syncEnabled: true,
+    syncUrl: "",
+    syncToken: ""
+  };
+  persistState();
 }
 
 function normalizeState(value) {
@@ -689,7 +726,7 @@ function normalizeEntry(entry) {
 
 function saveState() {
   state.updatedAt = new Date().toISOString();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  persistState();
   scheduleSyncPush();
 }
 
@@ -881,6 +918,10 @@ function render() {
   const goalProgress = Math.min(100, Math.round((pairBest / state.profile.goal) * 100));
 
   els.todayLabel.textContent = new Intl.DateTimeFormat("no-NO", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+  if (els.accountLabel) {
+    const email = normalizeAccountEmail(loadAuth()?.email || state.accountEmail || state.profile.userId);
+    els.accountLabel.textContent = email ? `Innlogget: ${email}` : "Innlogget";
+  }
   els.streakDays.textContent = streak;
   els.xpTotal.textContent = xpTotal();
   els.bestPushups.textContent = `${pushBest}/${bestSitupsSet()}`;
@@ -2087,7 +2128,7 @@ async function syncPull({ silent = false } = {}) {
     const payload = await response.json();
     if (payload.state) {
       state = mergeSyncedState(state, payload.state);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      persistState();
       render();
     }
     setSyncStatus("Sikkerhetskopi av treningsdata er oppdatert.");
@@ -2129,7 +2170,7 @@ async function syncNow() {
     syncUrl: "",
     syncToken: ""
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  persistState();
   if (!currentSyncToken()) {
     setSyncStatus("Logg inn for å synke treningsdata.");
     return;
@@ -2344,14 +2385,7 @@ async function bootstrapAuth() {
     return;
   }
 
-  state.profile = {
-    ...state.profile,
-    userId: auth.email,
-    syncEnabled: true,
-    syncUrl: "",
-    syncToken: ""
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  adoptStateForAuth(auth);
   showApp();
   render();
 

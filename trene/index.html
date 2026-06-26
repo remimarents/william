@@ -33,7 +33,7 @@
             : Promise.resolve()
         ]).finally(function () {
           params.delete("reset");
-          params.set("v", "71");
+          params.set("v", "72");
           window.location.replace(window.location.pathname + "?" + params.toString());
         });
       })();
@@ -63,6 +63,7 @@
       <section class="hero" aria-label="Dagens treningsstatus">
         <div class="hero__top">
           <div>
+            <p class="account-line" id="accountLabel">Innlogget</p>
             <p class="eyebrow" id="todayLabel">I dag</p>
             <h1>Trening</h1>
           </div>

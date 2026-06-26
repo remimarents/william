@@ -47,4 +47,4 @@ Treningsdata synkes via:
 
 `https://marents.no/trening/api/?action=sync`
 
-Serverdata ligger i `~/.ordreise-sync/trening-progress/`, mens bruker og sessions deles med de andre appene via `~/.ordreise-sync/users.json` og `~/.ordreise-sync/sessions.json`.
+Serverdata ligger per bruker i `~/.ordreise-sync/trening-progress/`, mens bruker og sessions deles med de andre appene via `~/.ordreise-sync/users.json` og `~/.ordreise-sync/sessions.json`. Lokal nettleser-cache lagres også per innlogget bruker etter første innlogging, slik at flere kontoer på samme enhet ikke blander treningslogg.
