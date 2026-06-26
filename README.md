@@ -41,7 +41,7 @@ Launchd installeres fra `launchd/com.remimarents.william-trene-reminder.plist`.
 
 ## Felles konto og synk
 
-Trening bruker samme innlogging som de andre Marents-appene. Felles auth-token lagres i `localStorage` som `ordreise-auth` og kommer fra `/wow/api/`.
+Trening bruker samme innlogging som de andre Marents-appene. Felles auth-token lagres i `localStorage` som `ordreise-auth` og kommer fra `/spill/api/`.
 
 Treningsdata synkes via:
 
