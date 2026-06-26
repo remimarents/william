@@ -2310,13 +2310,13 @@ function requestFriendAccount() {
   }
 
   const body = [
-    "Hei! Kan du lage en brukerkonto i Trening til en ny bruker?",
+    "Hei! Kan du lage en brukerkonto i Trening til en treningspartner?",
     "",
     `Navn: ${name}`,
     `Ønsket brukernavn: ${username}`,
     `E-post til passord: ${email}`,
     "",
-    "Personen skal ha egen trening, egen logg og egne mål."
+    "Treningspartneren skal ha egen trening, egen logg og egne mål."
   ].join("\n");
 
   els.friendRequestStatus.textContent = "Åpner Meldinger. Trykk send der for å sende forespørselen.";

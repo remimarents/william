@@ -222,18 +222,18 @@ Innstillinger inneholder:
 - lenke til denne bruksanvisningen
 - påminnelser
 - ntfy-test
-- ny bruker
+- treningspartner
 - eksport
 
 Startnivå er skjult når appen er satt opp. Hvis tallene må endres, trykk `Endre startnivå`.
 
-## 15. Ny bruker
+## 15. Treningspartner
 
-Hvis en annen person vil bruke Trening, kan du be om en egen brukerkonto til personen med eget opplegg, egen logg og egne mål.
+Hvis en treningspartner vil bruke Trening, kan du be om en egen brukerkonto med eget opplegg, egen logg og egne mål.
 
 I innstillinger:
 
-1. Trykk `Be om konto til ny bruker`.
+1. Trykk `Be om konto til treningspartner`.
 2. Fyll ut navn.
 3. Fyll ut ønsket brukernavn.
 4. Fyll ut e-postadresse til passord.
