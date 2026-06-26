@@ -47,4 +47,4 @@ Treningsdata synkes via:
 
 `https://marents.no/trening/api/?action=sync`
 
-Treningsdata ligger per bruker i `~/.marents-sync/trening-progress/`, mens brukere og sessions foreløpig deles med de andre appene via den eksisterende felles auth-lagringen. Lokal nettleser-cache lagres også per innlogget bruker etter første innlogging, slik at flere kontoer på samme enhet ikke blander treningslogg.
+Treningsdata ligger per bruker i `~/.marents-sync/trening-progress/`, og felles brukere/sessions ligger under `~/.marents-sync/`. Lokal nettleser-cache lagres også per innlogget bruker etter første innlogging, slik at flere kontoer på samme enhet ikke blander treningslogg.

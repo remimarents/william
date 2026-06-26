@@ -7,7 +7,8 @@ header('Cache-Control: no-store');
 $home = getenv('HOME') ?: dirname(__DIR__, 3);
 $dataDir = rtrim($home, '/') . '/.ordreise-sync';
 $trainingDataDir = rtrim($home, '/') . '/.marents-sync';
-$sessionsFile = $dataDir . '/sessions.json';
+$legacySessionsFile = $dataDir . '/sessions.json';
+$sessionsFile = $trainingDataDir . '/sessions.json';
 $legacyProgressDir = $dataDir . '/trening-progress';
 $progressDir = $trainingDataDir . '/trening-progress';
 
@@ -27,12 +28,19 @@ try {
 }
 
 function ensureStorage(): void {
-    global $dataDir, $trainingDataDir, $progressDir, $legacyProgressDir, $sessionsFile;
+    global $dataDir, $trainingDataDir, $progressDir, $legacyProgressDir, $legacySessionsFile, $sessionsFile;
     if (!is_dir($dataDir)) mkdir($dataDir, 0700, true);
     if (!is_dir($trainingDataDir)) mkdir($trainingDataDir, 0700, true);
     if (!is_dir($progressDir)) mkdir($progressDir, 0700, true);
+    migrateLegacyFile($legacySessionsFile, $sessionsFile);
     migrateLegacyProgress($legacyProgressDir, $progressDir);
     if (!file_exists($sessionsFile)) writeJsonFile($sessionsFile, []);
+}
+
+function migrateLegacyFile(string $legacyFile, string $targetFile): void {
+    if (!file_exists($legacyFile) || file_exists($targetFile)) return;
+    @copy($legacyFile, $targetFile);
+    @chmod($targetFile, 0600);
 }
 
 function migrateLegacyProgress(string $legacyDir, string $targetDir): void {
