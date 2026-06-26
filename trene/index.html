@@ -33,7 +33,7 @@
             : Promise.resolve()
         ]).finally(function () {
           params.delete("reset");
-          params.set("v", "68");
+          params.set("v", "70");
           window.location.replace(window.location.pathname + "?" + params.toString());
         });
       })();
@@ -45,6 +45,7 @@
         <img class="login-icon" src="./assets/icon-192.png" alt="" />
         <p class="eyebrow">Daglig trening</p>
         <h1 id="loginTitle">Trening</h1>
+        <p class="login-copy">Bruk samme konto som på Marents spill.</p>
         <label>
           Brukernavn
           <input id="usernameInput" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required />

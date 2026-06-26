@@ -12,7 +12,7 @@ Publisert på Marents.no fra mappen `trene/`:
 - streak, XP og merker
 - progresjon mot 100 reps
 - situps kan settes senere i innstillinger
-- synkronisert historikk via Mac mini-tjeneste, med `localStorage` som lokal cache
+- synkronisert historikk via felles Marents-konto, med `localStorage` som lokal cache
 - PWA med hjemskjermikon og enkel offline-cache
 - Mac mini-påminner via ntfy hvis dagens økt ikke er fullført
 
@@ -39,31 +39,12 @@ node scripts/william-reminder.mjs --test
 
 Launchd installeres fra `launchd/com.remimarents.william-trene-reminder.plist`.
 
-## Mac mini-synk
+## Felles konto og synk
 
-`scripts/william-sync-server.mjs` er en liten JSON-basert sync-server for appdata. Appen kan lese/skrive felles state via `https://.../api/state`, slik at økter vises på andre telefoner også.
+Trening bruker samme innlogging som de andre Marents-appene. Felles auth-token lagres i `localStorage` som `ordreise-auth` og kommer fra `/wow/api/`.
 
-Serveren kjører lokalt på Mac mini. Appen bruker HTTPS via Marents.no, og den aktive produksjonsruten er Cloudflare Tunnel `william-trene-sync`:
+Treningsdata synkes via:
 
-`https://william-trene-sync.marents.no`
+`https://marents.no/trening/api/?action=sync`
 
-Tunnelen peker til lokal origin `http://127.0.0.1:18787`.
-
-Lag en sterk nøkkel:
-
-```bash
-openssl rand -hex 32
-```
-
-Test lokalt:
-
-```bash
-SYNC_TOKEN="<nøkkel>" node scripts/william-sync-server.mjs
-curl -X POST -H "Content-Type: application/json" -d '{"username":"williamberner","password":"<passord>"}' http://127.0.0.1:18787/api/login
-curl -H "Authorization: Bearer <nøkkel>" -H "X-WB-User: williamberner" http://127.0.0.1:18787/api/state
-curl -H "Authorization: Bearer <nøkkel>" -H "X-WB-User: williamberner" https://william-trene-sync.marents.no/api/state
-```
-
-Launchd-mal ligger i `launchd/com.remimarents.william-trene-sync.plist`. Bytt `CHANGE_ME` med nøkkelen lokalt før den lastes inn.
-
-I appen er tunnel-URL forhåndsutfylt under `Innstillinger` → `Synkronisering`. Når brukeren logger inn, henter appen automatisk en kortlevd sync-session fra serveren. Den permanente sync-nøkkelen blir værende på Mac mini og trenger ikke limes inn på telefonen.
+Serverdata ligger i `~/.ordreise-sync/trening-progress/`, mens bruker og sessions deles med de andre appene via `~/.ordreise-sync/users.json` og `~/.ordreise-sync/sessions.json`.

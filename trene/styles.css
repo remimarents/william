@@ -90,6 +90,14 @@ select {
   color: var(--dark);
 }
 
+.login-copy {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
 .login-error {
   min-height: 22px;
   margin: 0;

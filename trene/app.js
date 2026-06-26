@@ -1,12 +1,12 @@
 const STORAGE_KEY = "william-trene-v1";
-const AUTH_KEY = "william-trene-auth-v1";
-const AUTH_USER_KEY = "william-trene-user-v1";
-const SYNC_SESSION_KEY = "william-trene-sync-session-v1";
-const AUTH_USER = "williamberner";
-const AUTH_PASSWORD_HASH = "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16";
+const AUTH_STORAGE_KEY = "ordreise-auth";
+const LEGACY_AUTH_KEY = "william-trene-auth-v1";
+const LEGACY_AUTH_USER_KEY = "william-trene-user-v1";
+const LEGACY_SYNC_SESSION_KEY = "william-trene-sync-session-v1";
+const AUTH_API = "/wow/api/";
+const TRAINING_API = "/trening/api/";
 const APP_URL = "https://marents.no/trening/";
 const DEFAULT_NTFY_TOPIC = "william-trene-wb-8v4k9m2p";
-const DEFAULT_SYNC_URL = "https://william-trene-sync.marents.no";
 const FRIEND_REQUEST_PHONE = "91666666";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BASE_EXERCISE_KEYS = ["pushups", "situps"];
@@ -40,9 +40,9 @@ const defaultState = {
     remindersEnabled: true,
     reminderTime: "19:30",
     photoEvery: 10,
-    userId: AUTH_USER,
+    userId: "",
     syncEnabled: true,
-    syncUrl: DEFAULT_SYNC_URL,
+    syncUrl: "",
     syncToken: "",
     enabledExercises: BASE_EXERCISE_KEYS,
     exerciseSettings: structuredClone(EXERCISE_PROGRAM_DEFAULTS)
@@ -490,21 +490,40 @@ const factDeck = [
   }
 ];
 
-async function hashText(value) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+function loadAuth() {
+  try {
+    const auth = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+    return auth?.email && auth?.token ? auth : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAuth(auth) {
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
+}
+
+function clearAuth() {
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(LEGACY_AUTH_KEY);
+  localStorage.removeItem(LEGACY_AUTH_USER_KEY);
+  localStorage.removeItem(LEGACY_SYNC_SESSION_KEY);
 }
 
 function isAuthenticated() {
-  if (localStorage.getItem(AUTH_KEY) !== AUTH_PASSWORD_HASH) return false;
-  if (!localStorage.getItem(AUTH_USER_KEY)) localStorage.setItem(AUTH_USER_KEY, AUTH_USER);
-  return localStorage.getItem(AUTH_USER_KEY) === AUTH_USER;
+  return Boolean(loadAuth()?.token);
 }
 
-function setAuthenticated(username) {
-  localStorage.setItem(AUTH_KEY, AUTH_PASSWORD_HASH);
-  localStorage.setItem(AUTH_USER_KEY, username);
+function setAuthenticated(auth) {
+  saveAuth(auth);
+  state.profile = {
+    ...state.profile,
+    userId: auth.email,
+    syncEnabled: true,
+    syncUrl: "",
+    syncToken: ""
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   showApp();
 }
 
@@ -526,37 +545,34 @@ async function handleLogin(event) {
   event.preventDefault();
   els.loginError.textContent = "";
 
-  const username = els.usernameInput.value.trim().toLowerCase();
+  const email = els.usernameInput.value.trim().toLowerCase();
   const password = els.passwordInput.value;
-  let passwordHash = "";
-
   try {
-    passwordHash = await hashText(password);
-  } catch {
-    els.loginError.textContent = "Kunne ikke sjekke passordet. Oppdater siden og prøv igjen.";
-    return;
-  }
-
-  if (username === AUTH_USER && passwordHash === AUTH_PASSWORD_HASH) {
-    setAuthenticated(username);
+    const response = await fetch(`${AUTH_API}?action=login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      body: JSON.stringify({ email, password })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.error || !payload.token || !payload.email) {
+      throw new Error(payload.error || "Feil brukernavn eller passord.");
+    }
+    setAuthenticated({ email: payload.email, token: payload.token });
     els.passwordInput.value = "";
-    startSyncSession(username, password)
-      .then(() => syncPull({ silent: true }))
-      .catch(() => setSyncStatus("Innlogging virker lokalt, men sikkerhetskopi er ikke oppdatert akkurat nå."));
-    return;
+    await syncPull({ silent: true });
+    await syncPush({ silent: true });
+  } catch (error) {
+    els.loginError.textContent = error.message || "Feil brukernavn eller passord.";
+    els.passwordInput.value = "";
+    els.passwordInput.focus();
   }
-
-  els.loginError.textContent = "Feil brukernavn eller passord.";
-  els.passwordInput.value = "";
-  els.passwordInput.focus();
 }
 
 function logout() {
   const confirmed = window.confirm("Vil du logge ut av Trening? Treningsdata beholdes, men du må logge inn igjen på denne enheten.");
   if (!confirmed) return;
-  localStorage.removeItem(AUTH_KEY);
-  localStorage.removeItem(AUTH_USER_KEY);
-  localStorage.removeItem(SYNC_SESSION_KEY);
+  clearAuth();
   showLogin();
 }
 
@@ -1711,8 +1727,8 @@ function settingsValuesFromInputs() {
     remindersEnabled: els.remindersInput.checked,
     reminderTime: els.reminderTimeInput.value || "19:30",
     syncEnabled: true,
-    syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
-    syncToken: state.profile.syncToken || ""
+    syncUrl: "",
+    syncToken: ""
   };
 }
 
@@ -1965,89 +1981,35 @@ function exportData() {
   URL.revokeObjectURL(url);
 }
 
-function normalizeSyncUrl(value) {
-  return value.trim().replace(/\/+$/, "");
-}
-
 function syncIsConfigured() {
-  return Boolean(isAuthenticated() && state.profile.syncEnabled && state.profile.syncUrl && currentSyncToken());
+  return Boolean(isAuthenticated() && state.profile.syncEnabled && currentSyncToken());
 }
 
 function syncEndpoint() {
-  return `${normalizeSyncUrl(state.profile.syncUrl)}/api/state`;
-}
-
-function syncLoginEndpoint() {
-  return `${normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL)}/api/login`;
-}
-
-function readSyncSession() {
-  try {
-    const session = JSON.parse(localStorage.getItem(SYNC_SESSION_KEY));
-    if (!session?.token || !session?.userId || Date.parse(session.expiresAt || "") <= Date.now()) {
-      return null;
-    }
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-function writeSyncSession(session) {
-  localStorage.setItem(SYNC_SESSION_KEY, JSON.stringify(session));
+  return `${TRAINING_API}?action=sync`;
 }
 
 function currentSyncToken() {
-  const session = readSyncSession();
-  return session?.token || state.profile.syncToken || "";
-}
-
-async function startSyncSession(username, password) {
-  try {
-    const response = await fetch(syncLoginEndpoint(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-      body: JSON.stringify({ username, password })
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
-    if (!payload.sessionToken || !payload.userId) throw new Error("missing_session");
-    writeSyncSession({
-      token: payload.sessionToken,
-      userId: payload.userId,
-      expiresAt: payload.expiresAt
-    });
-    state.profile = {
-      ...state.profile,
-      userId: payload.userId,
-      syncEnabled: true,
-      syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
-      syncToken: ""
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    setSyncStatus("Synk er koblet til innloggingen.");
-    return true;
-  } catch {
-    setSyncStatus("Innlogging virker lokalt, men sync-session kunne ikke hentes.");
-    return false;
-  }
+  return loadAuth()?.token || "";
 }
 
 function syncHeaders() {
   return {
     Authorization: `Bearer ${currentSyncToken()}`,
-    "X-WB-User": readSyncSession()?.userId || localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
     "Content-Type": "application/json"
   };
 }
 
 function publicStateForSync() {
   const copy = structuredClone(state);
+  const auth = loadAuth();
   copy.profile = {
     ...copy.profile,
+    userId: auth?.email || copy.profile.userId || "",
+    syncUrl: "",
     syncToken: ""
   };
+  copy.accountEmail = auth?.email || "";
   return copy;
 }
 
@@ -2083,10 +2045,10 @@ function mergeSyncedState(localValue, remoteValue) {
   const local = normalizeState(localValue);
   const remote = normalizeState(remoteValue);
   const localSync = {
-    userId: local.profile.userId,
+    userId: loadAuth()?.email || local.profile.userId,
     syncEnabled: local.profile.syncEnabled,
-    syncUrl: local.profile.syncUrl,
-    syncToken: local.profile.syncToken
+    syncUrl: "",
+    syncToken: ""
   };
   const remoteIsNewer = Date.parse(remote.updatedAt || "") > Date.parse(local.updatedAt || "");
 
@@ -2145,7 +2107,7 @@ async function syncPush({ silent = false } = {}) {
       headers: syncHeaders(),
       body: JSON.stringify({
         updatedBy: state.profile.name || "Bruker",
-        updatedByUserId: localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
+        updatedByUserId: loadAuth()?.email || state.profile.userId || "",
         state: publicStateForSync()
       })
     });
@@ -2159,16 +2121,17 @@ async function syncPush({ silent = false } = {}) {
 }
 
 async function syncNow() {
+  const auth = loadAuth();
   state.profile = {
     ...state.profile,
-    userId: localStorage.getItem(AUTH_USER_KEY) || AUTH_USER,
+    userId: auth?.email || state.profile.userId || "",
     syncEnabled: true,
-    syncUrl: normalizeSyncUrl(state.profile.syncUrl || DEFAULT_SYNC_URL),
+    syncUrl: "",
     syncToken: ""
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if (!currentSyncToken()) {
-    setSyncStatus("Logg ut og inn igjen for å hente ny sync-session.");
+    setSyncStatus("Logg inn for å synke treningsdata.");
     return;
   }
   const pulled = await syncPull();
@@ -2373,6 +2336,42 @@ function compressImage(file, onDone) {
   reader.readAsDataURL(file);
 }
 
+async function bootstrapAuth() {
+  const auth = loadAuth();
+  if (!auth) {
+    showLogin();
+    render();
+    return;
+  }
+
+  state.profile = {
+    ...state.profile,
+    userId: auth.email,
+    syncEnabled: true,
+    syncUrl: "",
+    syncToken: ""
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  showApp();
+  render();
+
+  try {
+    const response = await fetch(`${TRAINING_API}?action=me`, {
+      method: "POST",
+      headers: syncHeaders(),
+      cache: "no-store",
+      body: "{}"
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    await syncPull({ silent: true });
+    await syncPush({ silent: true });
+  } catch {
+    clearAuth();
+    setSyncStatus("Logg inn for å synke treningsdata.");
+    showLogin();
+  }
+}
+
 els.completeButton.addEventListener("click", completeWorkout);
 els.loginForm.addEventListener("submit", handleLogin);
 els.logoutButton.addEventListener("click", logout);
@@ -2425,10 +2424,4 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
-if (isAuthenticated()) {
-  showApp();
-} else {
-  showLogin();
-}
-
-render();
+bootstrapAuth();
