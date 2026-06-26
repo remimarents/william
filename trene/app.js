@@ -30,7 +30,7 @@ const EXERCISE_PROGRAM_DEFAULTS = {
 const defaultState = {
   version: 1,
   profile: {
-    name: "William",
+    name: "Bruker",
     pushBase: 15,
     pushTestMax: 29,
     situpBase: 15,
@@ -450,7 +450,7 @@ const factDeck = [
   },
   {
     title: "Hvile er del av programmet",
-    text: "En 13-åring kan være aktiv hver dag, men samme muskler trenger også rolige dager. Derfor kan WB Trene ha lette dager. Smerte i ledd eller skarp smerte betyr stopp, ikke press."
+    text: "En aktiv person kan være aktiv hver dag, men samme muskler trenger også rolige dager. Derfor kan Trening ha lette dager. Smerte i ledd eller skarp smerte betyr stopp, ikke press."
   },
   {
     title: "Mat er byggemateriale",
@@ -552,7 +552,7 @@ async function handleLogin(event) {
 }
 
 function logout() {
-  const confirmed = window.confirm("Vil du logge ut av WB Trene? Treningsdata beholdes, men du må logge inn igjen på denne enheten.");
+  const confirmed = window.confirm("Vil du logge ut av Trening? Treningsdata beholdes, men du må logge inn igjen på denne enheten.");
   if (!confirmed) return;
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
@@ -1700,7 +1700,7 @@ let settingsSnapshot = "";
 function settingsValuesFromInputs() {
   const exerciseSettings = exerciseSettingsFromInputs();
   return {
-    name: els.nameInput.value.trim() || "William",
+    name: els.nameInput.value.trim() || "Bruker",
     pushBase: exerciseSettings.pushups.start,
     pushTestMax: clamp(Number(state.profile.pushTestMax || 29), 1, 100),
     situpBase: exerciseSettings.situps.start,
@@ -1960,7 +1960,7 @@ function exportData() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `william-trene-${isoDate()}.json`;
+  link.download = `trening-${isoDate()}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -2144,7 +2144,7 @@ async function syncPush({ silent = false } = {}) {
       method: "PUT",
       headers: syncHeaders(),
       body: JSON.stringify({
-        updatedBy: state.profile.name || "William",
+        updatedBy: state.profile.name || "Bruker",
         updatedByUserId: localStorage.getItem(AUTH_USER_KEY) || state.profile.userId || AUTH_USER,
         state: publicStateForSync()
       })
@@ -2270,7 +2270,7 @@ async function testNtfy() {
   state.profile.ntfyTopic = sanitizeTopic(els.ntfyTopicInput.value) || DEFAULT_NTFY_TOPIC;
   const ok = await sendNtfy({
     title: "Trene-test",
-    message: "Dette er en test fra Williams treningsapp.",
+    message: "Dette er en test fra treningsappen.",
     tags: "muscle"
   });
   state.profile.ntfyTopic = previousTopic;
@@ -2310,13 +2310,13 @@ function requestFriendAccount() {
   }
 
   const body = [
-    "Hei! Kan du lage en WB Trene-brukerkonto til en kompis?",
+    "Hei! Kan du lage en brukerkonto i Trening til en ny bruker?",
     "",
     `Navn: ${name}`,
     `Ønsket brukernavn: ${username}`,
     `E-post til passord: ${email}`,
     "",
-    "Kompisen skal ha egen trening, egen logg og egne mål."
+    "Personen skal ha egen trening, egen logg og egne mål."
   ].join("\n");
 
   els.friendRequestStatus.textContent = "Åpner Meldinger. Trykk send der for å sende forespørselen.";

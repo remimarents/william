@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0f172a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="WB Trene" />
-    <title>WB Trene</title>
+    <meta name="apple-mobile-web-app-title" content="Trening" />
+    <title>Trening</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <link rel="stylesheet" href="./styles.css" />
@@ -33,7 +33,7 @@
             : Promise.resolve()
         ]).finally(function () {
           params.delete("reset");
-          params.set("v", "66");
+          params.set("v", "68");
           window.location.replace(window.location.pathname + "?" + params.toString());
         });
       })();
@@ -43,8 +43,8 @@
     <section class="login-shell" id="loginShell" aria-labelledby="loginTitle">
       <form class="login-card" id="loginForm">
         <img class="login-icon" src="./assets/icon-192.png" alt="" />
-        <p class="eyebrow">Privat treningsapp</p>
-        <h1 id="loginTitle">WB Trene</h1>
+        <p class="eyebrow">Daglig trening</p>
+        <h1 id="loginTitle">Trening</h1>
         <label>
           Brukernavn
           <input id="usernameInput" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required />
@@ -63,7 +63,7 @@
         <div class="hero__top">
           <div>
             <p class="eyebrow" id="todayLabel">I dag</p>
-            <h1>WB Trene</h1>
+            <h1>Trening</h1>
           </div>
           <img class="app-icon" src="./assets/icon-192.png" alt="" />
         </div>
@@ -275,7 +275,7 @@
         <label>
           <span class="label-row">
             ntfy topic
-            <button class="info-button" type="button" data-help="ntfy er en enkel varslingstjeneste. WB Trene bruker den som en privat kanal mellom appen, Mac mini og telefonen. Appen sender ikke trening via ntfy; ntfy brukes bare til påminnelser og testvarsler. Topic er kanalnavnet Mac mini sender til. Feltet er låst fordi topic skal være fast og ikke deles unødvendig." title="Forklaring av ntfy topic." aria-label="Forklaring av ntfy topic.">?</button>
+            <button class="info-button" type="button" data-help="ntfy er en enkel varslingstjeneste. Trening bruker den som en privat kanal mellom appen, Mac mini og telefonen. Appen sender ikke trening via ntfy; ntfy brukes bare til påminnelser og testvarsler. Topic er kanalnavnet Mac mini sender til. Feltet er låst fordi topic skal være fast og ikke deles unødvendig." title="Forklaring av ntfy topic." aria-label="Forklaring av ntfy topic.">?</button>
           </span>
           <input id="ntfyTopicInput" type="text" autocapitalize="none" spellcheck="false" readonly aria-readonly="true" />
         </label>
@@ -296,7 +296,7 @@
             <h3>Legg til flere øvelser</h3>
             <p>Appen låser automatisk opp nye øvelser når du har nådd målet på øvelsene du har. Du kan også velge å legge til øvelser tidligere.</p>
           </div>
-          <button class="text-button" id="openExerciseManagerFromSettings" type="button">Flere Treningsøvelser</button>
+          <button class="text-button" id="openExerciseManagerFromSettings" type="button">Flere treningsøvelser</button>
         </section>
 
         <section class="sync-settings">
@@ -309,14 +309,14 @@
         <section class="friend-request">
           <div class="friend-request__header">
             <div>
-              <h3>Kompiser på WB Trene</h3>
-              <p>Hvis en kompis også vil trene, kan du be om en egen brukerkonto til kompisen med eget opplegg, egen logg og egne mål.</p>
+              <h3>Flere brukere på Trening</h3>
+              <p>Hvis en annen person også vil trene, kan du be om en egen brukerkonto til personen med eget opplegg, egen logg og egne mål.</p>
             </div>
           </div>
           <p class="friend-request__note">Knappen under spør om navn, ønsket brukernavn og e-postadresse til passord. Deretter åpnes Meldinger/iMessage med ferdig tekst til Remi.</p>
           <div class="friend-fields" id="friendFields" hidden>
             <label>
-              Kompisens navn
+              Personens navn
               <input id="friendNameInput" type="text" autocomplete="name" maxlength="60" />
             </label>
             <label>
@@ -329,7 +329,7 @@
             </label>
           </div>
           <p class="friend-status" id="friendRequestStatus" role="status"></p>
-          <button class="text-button" id="requestFriendButton" type="button" aria-expanded="false" aria-controls="friendFields">Be om konto til kompis</button>
+          <button class="text-button" id="requestFriendButton" type="button" aria-expanded="false" aria-controls="friendFields">Be om konto til ny bruker</button>
         </section>
 
       </form>

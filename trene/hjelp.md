@@ -1,8 +1,8 @@
-# WB Trene - hjelp og bruksanvisning
+# Trening - hjelp og bruksanvisning
 
 Designet versjon: [Hjelp/Bruksanvisning](./hjelp.html)
 
-WB Trene er en privat treningsapp for daglig progresjon mot ett sammenhengende sett på 100 pushups og 100 situps. Appen bruker hovedsett, støtte-sett, streaks, statistikk, bilder og fakta for å gjøre treningen enkel å følge over tid.
+Trening er en enkel treningsapp for daglig progresjon mot ett sammenhengende sett på 100 pushups og 100 situps. Appen bruker hovedsett, støtte-sett, streaks, statistikk, bilder og fakta for å gjøre treningen enkel å følge over tid.
 
 ## 1. Kom i gang
 
@@ -18,7 +18,7 @@ Hvis appen åpnes i Safari og du vil ha den som app:
 
 1. Trykk delingsknappen i Safari.
 2. Velg `Legg til på Hjem-skjerm`.
-3. Åpne `WB Trene` fra Hjem-skjermen.
+3. Åpne `Trening` fra Hjem-skjermen.
 
 ## 2. Hovedmålet
 
@@ -161,7 +161,7 @@ Planen kan ha støtte-sett selv om sluttmålet er ett sett. Det er fordi trening
 
 ## 10. Kommende øvelser
 
-Når målet er nådd på de to første øvelsene, kan WB Trene bygges videre med nye øvelser. Tanken er at pushups og situps fullføres først, slik at vanen, teknikken og `1 x 100`-målet sitter før programmet blir større.
+Når målet er nådd på de to første øvelsene, kan Trening bygges videre med nye øvelser. Tanken er at pushups og situps fullføres først, slik at vanen, teknikken og `1 x 100`-målet sitter før programmet blir større.
 
 Du kan også legge til øvelser tidligere ved å trykke på +-knappen i appen.
 
@@ -222,18 +222,18 @@ Innstillinger inneholder:
 - lenke til denne bruksanvisningen
 - påminnelser
 - ntfy-test
-- kompis-konto
+- ny bruker
 - eksport
 
 Startnivå er skjult når appen er satt opp. Hvis tallene må endres, trykk `Endre startnivå`.
 
-## 15. Kompis-konto
+## 15. Ny bruker
 
-Hvis en kompis vil bruke WB Trene, kan du be om en egen brukerkonto til kompisen med eget opplegg, egen logg og egne mål.
+Hvis en annen person vil bruke Trening, kan du be om en egen brukerkonto til personen med eget opplegg, egen logg og egne mål.
 
 I innstillinger:
 
-1. Trykk `Be om konto til kompis`.
+1. Trykk `Be om konto til ny bruker`.
 2. Fyll ut navn.
 3. Fyll ut ønsket brukernavn.
 4. Fyll ut e-postadresse til passord.

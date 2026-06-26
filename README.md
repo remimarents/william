@@ -1,6 +1,6 @@
-# William Trene
+# Trening
 
-Mobil-først treningsapp for Williams daglige pushups og situps.
+Mobil-først treningsapp for daglige pushups, situps og andre kroppsvektøvelser.
 
 Publisert på Marents.no fra mappen `trene/`:
 
@@ -26,7 +26,7 @@ python3 -m http.server 4173
 
 ## Mac mini-påminner
 
-Appen sender en ntfy-melding med tittelen `Bra jobbet` når William fullfører dagens økt. Når innstillinger lagres, sender appen også valgt påminnelsestid som en `Trene-config`-melding. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet sjekker ntfy-topicens siste meldinger og sender bare påminnelse hvis valgt tid er passert og dagens fullført-melding mangler.
+Appen sender en ntfy-melding med tittelen `Bra jobbet` når brukeren fullfører dagens økt. Når innstillinger lagres, sender appen også valgt påminnelsestid som en `Trene-config`-melding. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet sjekker ntfy-topicens siste meldinger og sender bare påminnelse hvis valgt tid er passert og dagens fullført-melding mangler.
 
 Topic: `william-trene-wb-8v4k9m2p`
 
@@ -41,7 +41,7 @@ Launchd installeres fra `launchd/com.remimarents.william-trene-reminder.plist`.
 
 ## Mac mini-synk
 
-`scripts/william-sync-server.mjs` er en liten JSON-basert sync-server for appdata. Appen kan lese/skrive felles state via `https://.../api/state`, slik at Williams økter vises på andre telefoner også.
+`scripts/william-sync-server.mjs` er en liten JSON-basert sync-server for appdata. Appen kan lese/skrive felles state via `https://.../api/state`, slik at økter vises på andre telefoner også.
 
 Serveren kjører lokalt på Mac mini. Appen bruker HTTPS via Marents.no, og den aktive produksjonsruten er Cloudflare Tunnel `william-trene-sync`:
 
@@ -66,4 +66,4 @@ curl -H "Authorization: Bearer <nøkkel>" -H "X-WB-User: williamberner" https://
 
 Launchd-mal ligger i `launchd/com.remimarents.william-trene-sync.plist`. Bytt `CHANGE_ME` med nøkkelen lokalt før den lastes inn.
 
-I appen er tunnel-URL forhåndsutfylt under `Innstillinger` → `Synkronisering`. Når William logger inn, henter appen automatisk en kortlevd sync-session fra serveren. Den permanente sync-nøkkelen blir værende på Mac mini og trenger ikke limes inn på telefonen.
+I appen er tunnel-URL forhåndsutfylt under `Innstillinger` → `Synkronisering`. Når brukeren logger inn, henter appen automatisk en kortlevd sync-session fra serveren. Den permanente sync-nøkkelen blir værende på Mac mini og trenger ikke limes inn på telefonen.
