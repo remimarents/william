@@ -8,7 +8,7 @@ WB Trene er en privat treningsapp for daglig progresjon mot ett sammenhengende s
 
 Åpne appen fra Hjem-skjermen på iPhone, eller gå til:
 
-`https://remimarents.github.io/william/trene/`
+`https://marents.no/trening/`
 
 Logg inn med brukernavnet og passordet du har fått.
 

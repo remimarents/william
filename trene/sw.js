@@ -1,4 +1,4 @@
-const CACHE_NAME = "william-trene-v66";
+const CACHE_NAME = "william-trene-v67";
 const ASSETS = [
   "./",
   "./index.html",
@@ -73,6 +73,13 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   const isAppShell =
     event.request.mode === "navigate" ||
+    url.pathname.endsWith("/trening/") ||
+    url.pathname.endsWith("/trening/index.html") ||
+    url.pathname.endsWith("/trening/app.js") ||
+    url.pathname.endsWith("/trening/styles.css") ||
+    url.pathname.endsWith("/trening/hjelp.html") ||
+    url.pathname.endsWith("/trening/hjelp.md") ||
+    url.pathname.endsWith("/trening/manifest.webmanifest") ||
     url.pathname.endsWith("/trene/") ||
     url.pathname.endsWith("/trene/index.html") ||
     url.pathname.endsWith("/trene/app.js") ||

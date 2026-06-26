@@ -12,7 +12,10 @@ const config = {
   defaultPasswordHash: process.env.SYNC_PASSWORD_HASH || "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16",
   sessionTtlMs: Number(process.env.SYNC_SESSION_TTL_MS || 30 * 24 * 60 * 60 * 1000),
   statePath: process.env.SYNC_STATE_PATH || `${process.env.HOME}/.william-trene-sync-state.json`,
-  allowedOrigin: process.env.SYNC_ALLOWED_ORIGIN || "https://remimarents.github.io"
+  allowedOrigins: (process.env.SYNC_ALLOWED_ORIGINS || process.env.SYNC_ALLOWED_ORIGIN || "https://remimarents.github.io,https://marents.no")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
 };
 
 if (!config.token || config.token === "CHANGE_ME") {
@@ -43,9 +46,12 @@ const passwordHashes = new Map([[config.defaultUserId, config.defaultPasswordHas
 const sessions = new Map();
 
 function jsonResponse(response, status, payload) {
+  const origin = response.requestOrigin || "";
+  const allowedOrigin = config.allowedOrigins.includes(origin) ? origin : config.allowedOrigins[0];
   response.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": config.allowedOrigin,
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Vary": "Origin",
     "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
     "Access-Control-Allow-Headers": "Authorization,Content-Type,X-WB-User",
     "Cache-Control": "no-store"
@@ -214,6 +220,7 @@ async function handleRequest(request, response) {
 }
 
 const server = createServer((request, response) => {
+  response.requestOrigin = request.headers.origin || "";
   handleRequest(request, response).catch((error) => {
     console.error(error);
     jsonResponse(response, 500, { ok: false, error: "server_error" });

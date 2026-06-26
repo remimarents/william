@@ -2,9 +2,9 @@
 
 Mobil-først treningsapp for Williams daglige pushups og situps.
 
-Publisert med GitHub Pages fra `main` og mappen `trene/`:
+Publisert på Marents.no fra mappen `trene/`:
 
-`https://remimarents.github.io/william/trene/`
+`https://marents.no/trening/`
 
 ## Funksjoner
 
@@ -43,7 +43,7 @@ Launchd installeres fra `launchd/com.remimarents.william-trene-reminder.plist`.
 
 `scripts/william-sync-server.mjs` er en liten JSON-basert sync-server for appdata. Appen kan lese/skrive felles state via `https://.../api/state`, slik at Williams økter vises på andre telefoner også.
 
-Serveren kjører lokalt på Mac mini, men GitHub Pages-appen krever HTTPS. Den aktive produksjonsruten er Cloudflare Tunnel `william-trene-sync`:
+Serveren kjører lokalt på Mac mini. Appen bruker HTTPS via Marents.no, og den aktive produksjonsruten er Cloudflare Tunnel `william-trene-sync`:
 
 `https://william-trene-sync.marents.no`
 

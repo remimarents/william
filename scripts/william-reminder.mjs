@@ -2,7 +2,7 @@
 
 const config = {
   topic: process.env.NTFY_TOPIC || "william-trene-wb-8v4k9m2p",
-  appUrl: process.env.APP_URL || "https://remimarents.github.io/william/trene/",
+  appUrl: process.env.APP_URL || "https://marents.no/trening/",
   timezone: process.env.TZ_NAME || "Europe/Oslo",
   defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "19:30",
   statePath: process.env.STATE_PATH || `${process.env.HOME}/.william-trene-reminder-state.json`
