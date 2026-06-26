@@ -490,6 +490,38 @@ const factDeck = [
     text: "Smart innsats er ikke å gjøre mest mulig hver dag. Det er å gjøre nok, ofte nok, med god form, mat og søvn. Da får du både sterkere kropp og bedre vane."
   },
   {
+    title: "Muskler er forbrenningsmaskiner",
+    text: "Muskler bruker energi hele døgnet, også når du sitter stille og kroppen bare holder seg i gang. Mer muskelmasse får kroppen til å bruke mer energi over tid. Derfor handler styrketrening ikke bare om å bli sterkere, men også om å bygge en kropp som jobber mer for deg hver dag."
+  },
+  {
+    title: "Etterforbrenning finnes",
+    text: "Når du trener, bruker kroppen energi der og da. Etterpå må den reparere muskler, fylle opp lagre og roe kroppen tilbake til normalen. Den ekstra aktiviteten etter trening kalles etterforbrenning eller EPOC. Den er ikke magisk, bare nesten."
+  },
+  {
+    title: "Behold musklene når fett skal ned",
+    text: "Hvis du bare spiser mindre, kan kroppen også miste muskler. Styrketrening sender signal om å beholde og bygge muskler. Det er veldig viktig ved fettreduksjon, fordi målet ikke bare er lavere vekt, men en sterkere kropp med bedre sammensetning."
+  },
+  {
+    title: "Store øvelser bruker mye energi",
+    text: "Øvelser som pushups, knebøy, utfall, planke og burpees bruker mange muskler samtidig. Jo mer muskelmasse som jobber, jo mer energi krever økten. Derfor kan en enkel kroppsvektøkt med god innsats gi mer igjen enn den ser ut som."
+  },
+  {
+    title: "Fett går ned av gjentatte valg",
+    text: "Fettreduksjon kommer sjelden av én hard økt. Det kommer av mange dager der du trener litt, spiser fornuftig, sover nok og ikke gir opp etter en dårlig dag. Appen hjelper deg med det viktigste: å møte opp igjen."
+  },
+  {
+    title: "Hardere økter gir mer etterarbeid",
+    text: "Når økten er tyngre, trenger kroppen mer tid og energi på å hente seg inn igjen. Puls, pust, temperatur og reparasjon skal tilbake til normalen. Derfor vil en kort, skikkelig innsats gi mer etterarbeid enn en veldig lett økt. Men teknikken skal fortsatt styre hvor hardt du presser."
+  },
+  {
+    title: "Mat styrer mesteparten",
+    text: "Trening hjelper kroppen å bruke energi og bygge muskler, men maten avgjør mesteparten av om fettlagrene går ned. Karbohydrater brytes ned til blodsukker. Når blodsukkeret stiger, lager kroppen insulin, hormonet som hjelper cellene å ta opp og lagre energi. Hvis du får mer energi enn du bruker, kan mer lagres som fett."
+  },
+  {
+    title: "Ikke jag svette, jag progresjon",
+    text: "Svetting betyr at kroppen kjøler seg ned. Det er ikke det samme som fettforbrenning. Bedre tegn er at du trener jevnlig, blir sterkere, tåler mer arbeid og holder vanen over tid."
+  },
+  {
     title: "Hva skaper vinnere?",
     text: "Ikke talent. Ikke bra utstyr. Ikke at alt går perfekt. De som blir best har én ting til felles: de jobber mer konsistent. Dagen etter en dårlig treningsdag fortsetter de. Selv litt trening når du er sliten, syk eller noe skjer, er bedre enn å droppe ut av programmet. Det farligste er ikke én dårlig økt. Det du skal passe deg for, er å misse økten etterpå også."
   }

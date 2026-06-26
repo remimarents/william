@@ -192,6 +192,10 @@ Temaer kan være:
 - pauser
 - tunge dager
 - mat og søvn
+- muskler og forbrenning
+- fettreduksjon
+- etterforbrenning/EPOC
+- karbohydrater og insulin
 - viljestyrke
 
 Faktaene er korte fordi de skal være lette å lese etter en økt.
