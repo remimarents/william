@@ -26,7 +26,7 @@ python3 -m http.server 4173
 
 ## Mac mini-påminner
 
-Appen lagrer iMessage-mottaker, påminnelsestid og fullførte økter i den server-synkede treningsstaten. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet leser treningsdata fra `~/.ordreise-sync/trening-progress/` på Marents-serveren via SSH og sender iMessage lokalt med Meldinger-appen bare hvis valgt tid er passert og dagens økt mangler.
+Appen lagrer iMessage-mottaker, påminnelsestid og fullførte økter i den server-synkede treningsstaten. Mac mini kjører `scripts/william-reminder.mjs` hvert 15. minutt via launchd. Scriptet leser treningsdata fra Marents-serveren via SSH og sender iMessage lokalt med Meldinger-appen bare hvis valgt tid er passert og dagens økt mangler.
 
 Mac mini må være innlogget med Meldinger/iMessage, og Terminal/osascript må ha lov til å styre Meldinger i macOS Personvern og sikkerhet.
 
@@ -47,4 +47,4 @@ Treningsdata synkes via:
 
 `https://marents.no/trening/api/?action=sync`
 
-Serverdata ligger per bruker i `~/.ordreise-sync/trening-progress/`, mens bruker og sessions deles med de andre appene via `~/.ordreise-sync/users.json` og `~/.ordreise-sync/sessions.json`. Lokal nettleser-cache lagres også per innlogget bruker etter første innlogging, slik at flere kontoer på samme enhet ikke blander treningslogg.
+Treningsdata ligger per bruker i `~/.marents-sync/trening-progress/`, mens brukere og sessions foreløpig deles med de andre appene via den eksisterende felles auth-lagringen. Lokal nettleser-cache lagres også per innlogget bruker etter første innlogging, slik at flere kontoer på samme enhet ikke blander treningslogg.

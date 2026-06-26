@@ -12,7 +12,7 @@ const config = {
   defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "19:30",
   statePath: process.env.STATE_PATH || `${process.env.HOME}/.william-trene-reminder-state.json`,
   sshHost: process.env.MARENTS_SSH_HOST || "marents",
-  remoteProgressDir: process.env.TRAINING_PROGRESS_DIR || "/home/marentsn/.ordreise-sync/trening-progress",
+  remoteProgressDir: process.env.TRAINING_PROGRESS_DIR || "/home/marentsn/.marents-sync/trening-progress",
   testRecipient: process.env.IMESSAGE_RECIPIENT || ""
 };
 
