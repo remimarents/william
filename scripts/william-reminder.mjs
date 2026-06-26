@@ -29,6 +29,21 @@ const messages = [
   "To minutter med startmotstand er ofte den tyngste delen. Åpne appen og ta dagens mål."
 ];
 
+const exerciseDefaults = {
+  pushups: { title: "Pushups", start: 15, goal: 100, supportSets: 2, unit: "reps" },
+  situps: { title: "Situps", start: 15, goal: 100, supportSets: 2, unit: "reps" },
+  kneboy: { title: "Knebøy", start: 15, goal: 100, supportSets: 2, unit: "reps" },
+  utfall: { title: "Utfall", start: 8, goal: 50, supportSets: 2, unit: "reps/side" },
+  planke: { title: "Planke", start: 30, goal: 180, supportSets: 2, unit: "sek" },
+  sideplanke: { title: "Sideplanke", start: 20, goal: 120, supportSets: 2, unit: "sek/side" },
+  rygghev: { title: "Rygghev", start: 12, goal: 60, supportSets: 2, unit: "reps" },
+  mountain: { title: "Mountain climbers", start: 20, goal: 100, supportSets: 2, unit: "reps/side" },
+  dips: { title: "Dips", start: 8, goal: 50, supportSets: 2, unit: "reps" },
+  hollow: { title: "Hollow hold", start: 20, goal: 120, supportSets: 2, unit: "sek" },
+  burpees: { title: "Burpees", start: 5, goal: 30, supportSets: 2, unit: "reps" },
+  roing: { title: "Pullups/roing", start: 3, goal: 15, supportSets: 2, unit: "reps" }
+};
+
 function localDate(date = new Date()) {
   const parts = new Intl.DateTimeFormat("sv-SE", {
     timeZone: config.timezone,
@@ -65,6 +80,11 @@ function reminderIsDue(reminderTime) {
   return localTimeMinutes() >= hours * 60 + minutes;
 }
 
+function clamp(value, min, max) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
 function sanitizeRecipient(value) {
   return String(value || "").trim().replace(/[^\p{L}\p{N}@+._ -]/gu, "").slice(0, 90);
 }
@@ -93,6 +113,77 @@ function formatCompletionSummary(state, dateKey) {
     .map(([key, value]) => `${value.total} ${key}`)
     .join(", ");
   return summary ? `Registrert: ${summary}.` : "Økten er registrert.";
+}
+
+function enabledExerciseKeys(state) {
+  const keys = Array.isArray(state?.profile?.enabledExercises) ? state.profile.enabledExercises : ["pushups", "situps"];
+  return [...new Set(keys.filter((key) => exerciseDefaults[key]))];
+}
+
+function exerciseSetting(state, key) {
+  const defaults = exerciseDefaults[key];
+  const saved = state?.profile?.exerciseSettings?.[key] || {};
+  const legacyStart = key === "pushups" ? state?.profile?.pushBase : key === "situps" ? state?.profile?.situpBase : undefined;
+  const legacyGoal = key === "pushups" || key === "situps" ? state?.profile?.goal : undefined;
+  const start = clamp(Number(saved.start ?? legacyStart ?? defaults.start), 0, 500);
+  return {
+    ...defaults,
+    start,
+    goal: Math.max(start || 1, clamp(Number(saved.goal ?? legacyGoal ?? defaults.goal), 1, 500)),
+    supportSets: clamp(Number(saved.supportSets ?? defaults.supportSets), 0, 4)
+  };
+}
+
+function bestExerciseMain(state, key) {
+  const setting = exerciseSetting(state, key);
+  const history = Array.isArray(state?.history) ? state.history : [];
+  return Math.max(setting.start, ...history.map((entry) => Number(entry?.actual?.exercises?.[key]?.main || 0)));
+}
+
+function nextMainSetTarget(startValue, bestValue, doneCount, isRecovery, goal) {
+  const progressStep = doneCount > 0 && doneCount % 2 === 0 ? 1 : 0;
+  const target = isRecovery ? Math.max(startValue, bestValue - 3) : Math.max(startValue, bestValue + progressStep);
+  return Math.min(goal, target);
+}
+
+function supportPlan(mainSetTarget, preferredSets = 2) {
+  if (!mainSetTarget || !preferredSets) return { sets: 0, reps: 0, total: 0 };
+  if (mainSetTarget >= 90) {
+    const reps = Math.max(10, Math.round(mainSetTarget * 0.25));
+    return { sets: Math.min(1, preferredSets), reps, total: reps };
+  }
+  if (mainSetTarget >= 70) {
+    const reps = Math.round(mainSetTarget * 0.35);
+    return { sets: Math.min(1, preferredSets), reps, total: reps };
+  }
+  if (mainSetTarget >= 45) {
+    const sets = Math.min(2, preferredSets);
+    const reps = Math.round(mainSetTarget * 0.4);
+    return { sets, reps, total: reps * sets };
+  }
+  if (mainSetTarget >= 30) {
+    const sets = Math.min(2, preferredSets);
+    const reps = Math.round(mainSetTarget * 0.5);
+    return { sets, reps, total: reps * sets };
+  }
+  const reps = Math.max(8, Math.round(mainSetTarget * 0.55));
+  return { sets: preferredSets, reps, total: reps * preferredSets };
+}
+
+function formatWorkoutPlan(state) {
+  const history = Array.isArray(state?.history) ? state.history : [];
+  const doneCount = history.length;
+  const isRecovery = doneCount > 0 && (doneCount + 1) % 7 === 0;
+  const parts = enabledExerciseKeys(state).map((key) => {
+    const setting = exerciseSetting(state, key);
+    const main = nextMainSetTarget(setting.start, bestExerciseMain(state, key), doneCount, isRecovery, setting.goal);
+    const support = supportPlan(main, setting.supportSets);
+    const unit = setting.unit === "reps" ? "" : ` ${setting.unit}`;
+    const supportText = support.sets ? ` + ${support.sets} x ${support.reps}` : "";
+    return `${setting.title}: 1 x ${main}${supportText}${unit}`;
+  });
+  const prefix = isRecovery ? "Litt lettere dag. " : "";
+  return `${prefix}${parts.join(". ")}.`;
 }
 
 async function readState() {
@@ -212,6 +303,31 @@ async function handleDailyReminders(remoteStates, reminderState) {
   return sentCount;
 }
 
+async function handleDailyPlans(remoteStates, reminderState) {
+  const today = localDate();
+  let sentCount = 0;
+  reminderState.dailyPlans = reminderState.dailyPlans || {};
+
+  for (const { state } of remoteStates) {
+    const profile = state.profile || {};
+    const email = String(state.accountEmail || profile.userId || "").toLowerCase();
+    const recipient = sanitizeRecipient(profile.imessageRecipient);
+    const dailyPlanTime = normalizeReminderTime(profile.dailyPlanTime || "08:00");
+    const key = `${email || recipient}:${today}`;
+    if (!email || !recipient) continue;
+    if (!profile.dailyPlanEnabled) continue;
+    if (!force && reminderState.dailyPlans[key]) continue;
+    if (!force && !reminderIsDue(dailyPlanTime)) continue;
+
+    const body = `Trening: Dagens økt for ${userLabel(state)}. ${formatWorkoutPlan(state)} Åpne appen: ${config.appUrl}`;
+    await sendImessage(recipient, body);
+    reminderState.dailyPlans[key] = new Date().toISOString();
+    sentCount += 1;
+  }
+
+  return sentCount;
+}
+
 async function sendManualTest(remoteStates) {
   const target =
     sanitizeRecipient(config.testRecipient) ||
@@ -233,10 +349,11 @@ async function main() {
   }
 
   const testCount = await handleQueuedTests(remoteStates, reminderState);
+  const planCount = await handleDailyPlans(remoteStates, reminderState);
   const reminderCount = await handleDailyReminders(remoteStates, reminderState);
 
   if (!dryRun) await writeState(reminderState);
-  console.log(`${dryRun ? "dry-run checked" : "checked"} ${remoteStates.length} training users; ${testCount} tests, ${reminderCount} reminders`);
+  console.log(`${dryRun ? "dry-run checked" : "checked"} ${remoteStates.length} training users; ${testCount} tests, ${planCount} plans, ${reminderCount} reminders`);
 }
 
 main().catch((error) => {

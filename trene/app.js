@@ -40,6 +40,8 @@ const defaultState = {
     imessageRecipient: "",
     remindersEnabled: true,
     reminderTime: "19:30",
+    dailyPlanEnabled: false,
+    dailyPlanTime: "08:00",
     photoEvery: 10,
     userId: "",
     syncEnabled: true,
@@ -126,6 +128,8 @@ const els = {
   imessageRecipientInput: document.querySelector("#imessageRecipientInput"),
   remindersInput: document.querySelector("#remindersInput"),
   reminderTimeInput: document.querySelector("#reminderTimeInput"),
+  dailyPlanInput: document.querySelector("#dailyPlanInput"),
+  dailyPlanTimeInput: document.querySelector("#dailyPlanTimeInput"),
   testImessageButton: document.querySelector("#testImessageButton"),
   syncStatus: document.querySelector("#syncStatus"),
   friendFields: document.querySelector("#friendFields"),
@@ -1727,6 +1731,8 @@ function openSettings() {
   els.imessageRecipientInput.value = state.profile.imessageRecipient || "";
   els.remindersInput.checked = state.profile.remindersEnabled;
   els.reminderTimeInput.value = state.profile.reminderTime;
+  els.dailyPlanInput.checked = Boolean(state.profile.dailyPlanEnabled);
+  els.dailyPlanTimeInput.value = state.profile.dailyPlanTime || "08:00";
   renderExerciseSettingsFields();
   settingsSnapshot = JSON.stringify(settingsValuesFromInputs());
   setSyncStatus(syncIsConfigured()
@@ -1765,6 +1771,8 @@ function settingsValuesFromInputs() {
     imessageRecipient: sanitizeImessageRecipient(els.imessageRecipientInput.value),
     remindersEnabled: els.remindersInput.checked,
     reminderTime: els.reminderTimeInput.value || "19:30",
+    dailyPlanEnabled: els.dailyPlanInput.checked,
+    dailyPlanTime: els.dailyPlanTimeInput.value || "08:00",
     syncEnabled: true,
     syncUrl: "",
     syncToken: ""
@@ -1775,7 +1783,7 @@ function persistSettingsFromInputs() {
   const nextProfile = settingsValuesFromInputs();
   const nextSnapshot = JSON.stringify(nextProfile);
   if (nextSnapshot === settingsSnapshot) return;
-  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}|${state.profile.imessageRecipient || ""}`;
+  const previousReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}|${state.profile.dailyPlanEnabled}|${state.profile.dailyPlanTime}|${state.profile.imessageRecipient || ""}`;
   state.profile = {
     ...state.profile,
     ...nextProfile
@@ -1783,7 +1791,7 @@ function persistSettingsFromInputs() {
   settingsSnapshot = nextSnapshot;
 
   saveState();
-  const nextReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}|${state.profile.imessageRecipient || ""}`;
+  const nextReminderConfig = `${state.profile.remindersEnabled}|${state.profile.reminderTime}|${state.profile.dailyPlanEnabled}|${state.profile.dailyPlanTime}|${state.profile.imessageRecipient || ""}`;
   if (previousReminderConfig !== nextReminderConfig) syncPush({ silent: true });
   render();
 }
@@ -2341,7 +2349,9 @@ els.exerciseSettingsFields.addEventListener("change", persistSettingsFromInputs)
 [
   els.imessageRecipientInput,
   els.remindersInput,
-  els.reminderTimeInput
+  els.reminderTimeInput,
+  els.dailyPlanInput,
+  els.dailyPlanTimeInput
 ].forEach((input) => input.addEventListener("change", persistSettingsFromInputs));
 els.exportButton.addEventListener("click", exportData);
 els.testImessageButton.addEventListener("click", requestImessageTest);

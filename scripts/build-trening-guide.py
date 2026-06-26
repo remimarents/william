@@ -111,7 +111,7 @@ def build_pdf():
         ),
         Spacer(1, 9 * mm),
         Paragraph("Påminnelser og konto", style["SectionTitle"]),
-        Paragraph("Påminnelser kan sendes fra Mac mini med iMessage når dagens økt mangler. Konto og innlogging håndteres felles via Marents-spillsiden, mens treningsdata lagres per bruker.", style["Lead"]),
+        Paragraph("Påminnelser kan sendes fra Mac mini med iMessage. Appen kan sende dagens økt med lenke på et fast tidspunkt, og en egen påminnelse senere hvis dagens økt fortsatt mangler. Konto og innlogging håndteres felles via Marents-spillsiden, mens treningsdata lagres per bruker.", style["Lead"]),
         Table(
             [[
                 Paragraph("<b>Tips:</b> Legg appen til på Hjem-skjermen på iPhone for å bruke den som en vanlig app.", style["Body"]),

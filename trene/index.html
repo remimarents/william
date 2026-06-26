@@ -33,7 +33,7 @@
             : Promise.resolve()
         ]).finally(function () {
           params.delete("reset");
-          params.set("v", "73");
+          params.set("v", "74");
           window.location.replace(window.location.pathname + "?" + params.toString());
         });
       })();
@@ -290,6 +290,16 @@
           Påminnelse kl.
           <button class="info-button" type="button" data-help="Dette er klokkeslettet Mac mini bruker for å sjekke treningen. Eksempel: Hvis tiden står til 19:30 og dagens økt ikke er fullført, sendes en iMessage." title="Forklaring av påminnelsestidspunkt." aria-label="Forklaring av påminnelsestidspunkt.">?</button>
           <input id="reminderTimeInput" type="time" />
+        </label>
+        <label class="check-label">
+          <input id="dailyPlanInput" type="checkbox" />
+          Send dagens økt med lenke
+          <button class="info-button" type="button" data-help="Når dette er aktivert sender Mac mini dagens foreslåtte økt med lenke til appen på valgt tidspunkt, én gang per dag." title="Forklaring av dagens økt-melding." aria-label="Forklaring av dagens økt-melding.">?</button>
+        </label>
+        <label>
+          Dagens økt kl.
+          <button class="info-button" type="button" data-help="Dette er klokkeslettet Mac mini bruker for å sende dagens økt med lenke til Trening." title="Forklaring av tidspunkt for dagens økt." aria-label="Forklaring av tidspunkt for dagens økt.">?</button>
+          <input id="dailyPlanTimeInput" type="time" />
         </label>
         <button class="text-button" id="testImessageButton" type="button">Test iMessage</button>
 
