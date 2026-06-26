@@ -23,7 +23,7 @@
     <key>SYNC_TOKEN</key>
     <string>CHANGE_ME</string>
     <key>SYNC_ALLOWED_ORIGINS</key>
-    <string>https://remimarents.github.io,https://marents.no</string>
+    <string>https://marents.no</string>
   </dict>
 
   <key>KeepAlive</key>

@@ -12,7 +12,7 @@ const config = {
   defaultPasswordHash: process.env.SYNC_PASSWORD_HASH || "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16",
   sessionTtlMs: Number(process.env.SYNC_SESSION_TTL_MS || 30 * 24 * 60 * 60 * 1000),
   statePath: process.env.SYNC_STATE_PATH || `${process.env.HOME}/.william-trene-sync-state.json`,
-  allowedOrigins: (process.env.SYNC_ALLOWED_ORIGINS || process.env.SYNC_ALLOWED_ORIGIN || "https://remimarents.github.io,https://marents.no")
+  allowedOrigins: (process.env.SYNC_ALLOWED_ORIGINS || process.env.SYNC_ALLOWED_ORIGIN || "https://marents.no")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)
