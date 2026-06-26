@@ -14,7 +14,7 @@ Publisert på Marents.no fra mappen `trene/`:
 - situps kan settes senere i innstillinger
 - synkronisert historikk via felles Marents-konto, med `localStorage` som lokal cache
 - PWA med hjemskjermikon og enkel offline-cache
-- Mac mini-påminner via iMessage hvis dagens økt ikke er fullført
+- Treningsappen sender iMessage-påminner hvis dagens økt ikke er fullført
 
 ## Lokal kjøring
 
@@ -24,9 +24,9 @@ python3 -m http.server 4173
 
 Åpne `http://localhost:4173/trene/`.
 
-## Mac mini-påminner
+## iMessage-påminner
 
-Appen lagrer iMessage-mottaker, tidspunkt for dagens økt, påminnelsestid og fullførte økter i den server-synkede treningsstaten. Mac mini kjører `scripts/trening-reminder.mjs` hvert 15. minutt via launchd. Scriptet leser treningsdata fra Marents-serveren via SSH og kan sende dagens foreslåtte økt med lenke på valgt tidspunkt. Det kan også sende en egen iMessage hvis valgt påminnelsestid er passert og dagens økt fortsatt mangler.
+Appen lagrer iMessage-mottaker, tidspunkt for dagens økt, påminnelsestid og fullførte økter i den server-synkede treningsstaten. Treningsappen kan sende dagens foreslåtte økt med lenke på valgt tidspunkt. Den kan også sende en egen iMessage hvis valgt påminnelsestid er passert og dagens økt fortsatt mangler. Teknisk kjøres `scripts/trening-reminder.mjs` hvert 15. minutt via launchd på Mac mini.
 
 Mac mini må være innlogget med Meldinger/iMessage, og Terminal/osascript må ha lov til å styre Meldinger i macOS Personvern og sikkerhet.
 

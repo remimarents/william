@@ -270,7 +270,7 @@ async function handleQueuedTests(remoteStates, reminderState) {
     const recipient = sanitizeRecipient(state.profile?.imessageRecipient);
     if (!email || !requestedAt || requestedAt <= alreadySentAt || !recipient) continue;
 
-    const body = `Test fra Trening: Mac mini kan sende iMessage-påminnelser til ${userLabel(state)}. ${config.appUrl}`;
+    const body = `Test fra Trening: Treningsappen kan sende iMessage-påminnelser til ${userLabel(state)}. ${config.appUrl}`;
     await sendImessage(recipient, body);
     reminderState.testRequests[email] = requestedAt;
     sentCount += 1;
@@ -340,7 +340,7 @@ async function sendManualTest(remoteStates) {
   if (!target) {
     throw new Error("Mangler iMessage-mottaker. Sett IMESSAGE_RECIPIENT eller legg mottaker i Trening-innstillinger.");
   }
-  await sendImessage(target, `Test fra Mac mini-påminneren for Trening. ${config.appUrl}`);
+  await sendImessage(target, `Test fra Treningsappen sin iMessage-påminner. ${config.appUrl}`);
   console.log(`${dryRun ? "dry-run test prepared" : "test iMessage sent"} to ${target}`);
 }
 

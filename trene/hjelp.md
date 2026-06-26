@@ -206,12 +206,12 @@ Forklaringen åpnes som et tydelig overlay. Trykk `x` eller utenfor kortet for �
 
 I innstillinger kan påminnelser styres.
 
-Påminnelsene bruker Mac mini og iMessage. Du kan slå på to typer meldinger:
+Påminnelsene sendes som iMessage fra Treningsappen. Du kan slå på to typer meldinger:
 
 - dagens økt med lenke til appen på et fast tidspunkt hver dag
 - påminnelse senere på dagen hvis dagens økt ikke er gjort
 
-Tidspunktene bestemmer når Mac mini skal sjekke serveren og sende de aktuelle meldingene.
+Tidspunktene bestemmer når Treningsappen skal sende de aktuelle meldingene.
 
 Hvis påminnelsen ikke fungerer:
 
