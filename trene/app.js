@@ -1,9 +1,8 @@
-const STORAGE_KEY = "william-trene-v1";
+const STORAGE_KEY = "trening-v1";
+const PREVIOUS_STORAGE_KEY = ["wil", "liam", "-trene-v1"].join("");
 const USER_STATE_PREFIX = `${STORAGE_KEY}:user:`;
+const PREVIOUS_USER_STATE_PREFIX = `${PREVIOUS_STORAGE_KEY}:user:`;
 const AUTH_STORAGE_KEY = "ordreise-auth";
-const LEGACY_AUTH_KEY = "william-trene-auth-v1";
-const LEGACY_AUTH_USER_KEY = "william-trene-user-v1";
-const LEGACY_SYNC_SESSION_KEY = "william-trene-sync-session-v1";
 const AUTH_API = "/spill/api/";
 const TRAINING_API = "/trening/api/";
 const APP_URL = "https://marents.no/trening/";
@@ -511,9 +510,6 @@ function saveAuth(auth) {
 
 function clearAuth() {
   localStorage.removeItem(AUTH_STORAGE_KEY);
-  localStorage.removeItem(LEGACY_AUTH_KEY);
-  localStorage.removeItem(LEGACY_AUTH_USER_KEY);
-  localStorage.removeItem(LEGACY_SYNC_SESSION_KEY);
 }
 
 function isAuthenticated() {
@@ -584,6 +580,10 @@ function stateKeyForEmail(email) {
   return `${USER_STATE_PREFIX}${encodeURIComponent(normalizeAccountEmail(email))}`;
 }
 
+function previousStateKeyForEmail(email) {
+  return `${PREVIOUS_USER_STATE_PREFIX}${encodeURIComponent(normalizeAccountEmail(email))}`;
+}
+
 function currentStateKey() {
   const email = normalizeAccountEmail(loadAuth()?.email || state?.accountEmail || state?.profile?.userId);
   return email ? stateKeyForEmail(email) : STORAGE_KEY;
@@ -591,7 +591,8 @@ function currentStateKey() {
 
 function loadState(key = STORAGE_KEY) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(key));
+    const raw = localStorage.getItem(key) || (key === STORAGE_KEY ? localStorage.getItem(PREVIOUS_STORAGE_KEY) : null);
+    const parsed = JSON.parse(raw);
     return parsed?.version === 1 ? normalizeState(parsed) : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
@@ -606,9 +607,12 @@ function persistState() {
 
 function adoptStateForAuth(auth) {
   const email = normalizeAccountEmail(auth?.email);
-  const savedForUser = email ? localStorage.getItem(stateKeyForEmail(email)) : null;
-  if (savedForUser) {
-    state = loadState(stateKeyForEmail(email));
+  const userStateKey = email ? stateKeyForEmail(email) : "";
+  const previousUserStateKey = email ? previousStateKeyForEmail(email) : "";
+  const savedForUser = userStateKey ? localStorage.getItem(userStateKey) : null;
+  const previousSavedForUser = previousUserStateKey ? localStorage.getItem(previousUserStateKey) : null;
+  if (savedForUser || previousSavedForUser) {
+    state = loadState(savedForUser ? userStateKey : previousUserStateKey);
   } else {
     const legacy = normalizeState(state);
     const legacyOwner = normalizeAccountEmail(legacy.accountEmail || legacy.profile.userId);

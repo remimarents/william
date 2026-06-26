@@ -8,10 +8,10 @@ const config = {
   host: process.env.SYNC_HOST || "127.0.0.1",
   port: Number(process.env.SYNC_PORT || 8787),
   token: process.env.SYNC_TOKEN || "",
-  defaultUserId: (process.env.SYNC_DEFAULT_USER_ID || "williamberner").toLowerCase(),
+  defaultUserId: (process.env.SYNC_DEFAULT_USER_ID || "trening").toLowerCase(),
   defaultPasswordHash: process.env.SYNC_PASSWORD_HASH || "c4dc08362079d1937a6e12c2ee0be77b70dbdb7e5d8ac7bd63b24122a7f25f16",
   sessionTtlMs: Number(process.env.SYNC_SESSION_TTL_MS || 30 * 24 * 60 * 60 * 1000),
-  statePath: process.env.SYNC_STATE_PATH || `${process.env.HOME}/.william-trene-sync-state.json`,
+  statePath: process.env.SYNC_STATE_PATH || `${process.env.HOME}/.trening-sync-state.json`,
   allowedOrigins: (process.env.SYNC_ALLOWED_ORIGINS || process.env.SYNC_ALLOWED_ORIGIN || "https://marents.no")
     .split(",")
     .map((origin) => origin.trim())
@@ -53,7 +53,7 @@ function jsonResponse(response, status, payload) {
     "Access-Control-Allow-Origin": allowedOrigin,
     "Vary": "Origin",
     "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization,Content-Type,X-WB-User",
+    "Access-Control-Allow-Headers": "Authorization,Content-Type,X-Trening-User",
     "Cache-Control": "no-store"
   });
   response.end(`${JSON.stringify(payload)}\n`);
@@ -86,7 +86,7 @@ function sha256(value) {
 }
 
 function authorizedUserId(request) {
-  const userId = String(request.headers["x-wb-user"] || "").trim().toLowerCase();
+  const userId = String(request.headers["x-trening-user"] || "").trim().toLowerCase();
   if (!userId) return "";
 
   const bearer = String(request.headers.authorization || "").replace(/^Bearer\s+/i, "");
@@ -228,5 +228,5 @@ const server = createServer((request, response) => {
 });
 
 server.listen(config.port, config.host, () => {
-  console.log(`william sync server listening on http://${config.host}:${config.port}`);
+  console.log(`trening sync server listening on http://${config.host}:${config.port}`);
 });

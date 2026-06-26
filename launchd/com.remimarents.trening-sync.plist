@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.remimarents.william-trene-sync</string>
+  <string>com.remimarents.trening-sync</string>
 
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/node</string>
-    <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for/scripts/william-sync-server.mjs</string>
+    <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for/scripts/trening-sync-server.mjs</string>
   </array>
 
   <key>WorkingDirectory</key>
@@ -33,9 +33,9 @@
   <true/>
 
   <key>StandardOutPath</key>
-  <string>/Users/remimarents/Library/Logs/william-trene-sync.log</string>
+  <string>/Users/remimarents/Library/Logs/trening-sync.log</string>
 
   <key>StandardErrorPath</key>
-  <string>/Users/remimarents/Library/Logs/william-trene-sync.err.log</string>
+  <string>/Users/remimarents/Library/Logs/trening-sync.err.log</string>
 </dict>
 </plist>

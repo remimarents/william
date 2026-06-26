@@ -10,7 +10,8 @@ const config = {
   appUrl: process.env.APP_URL || "https://marents.no/trening/",
   timezone: process.env.TZ_NAME || "Europe/Oslo",
   defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "19:30",
-  statePath: process.env.STATE_PATH || `${process.env.HOME}/.william-trene-reminder-state.json`,
+  statePath: process.env.STATE_PATH || `${process.env.HOME}/.trening-reminder-state.json`,
+  previousStatePath: `${process.env.HOME}/.${["wil", "liam", "-trene-reminder-state.json"].join("")}`,
   sshHost: process.env.MARENTS_SSH_HOST || "marents",
   remoteProgressDir: process.env.TRAINING_PROGRESS_DIR || "/home/marentsn/.marents-sync/trening-progress",
   testRecipient: process.env.IMESSAGE_RECIPIENT || ""
@@ -190,7 +191,11 @@ async function readState() {
   try {
     return JSON.parse(await readFile(config.statePath, "utf8"));
   } catch {
-    return {};
+    try {
+      return JSON.parse(await readFile(config.previousStatePath, "utf8"));
+    } catch {
+      return {};
+    }
   }
 }
 

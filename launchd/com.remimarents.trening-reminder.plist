@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.remimarents.william-trene-reminder</string>
+  <string>com.remimarents.trening-reminder</string>
 
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/node</string>
-    <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for/scripts/william-reminder.mjs</string>
+    <string>/Users/remimarents/Documents/Codex/2026-06-22/hjelp-meg-lage-en-webapp-for/scripts/trening-reminder.mjs</string>
   </array>
 
   <key>WorkingDirectory</key>
@@ -16,8 +16,6 @@
 
   <key>EnvironmentVariables</key>
   <dict>
-    <key>NTFY_TOPIC</key>
-    <string>william-trene-wb-8v4k9m2p</string>
     <key>APP_URL</key>
     <string>https://marents.no/trening/</string>
     <key>TZ_NAME</key>
@@ -30,9 +28,9 @@
   <integer>900</integer>
 
   <key>StandardOutPath</key>
-  <string>/Users/remimarents/Library/Logs/william-trene-reminder.log</string>
+  <string>/Users/remimarents/Library/Logs/trening-reminder.log</string>
 
   <key>StandardErrorPath</key>
-  <string>/Users/remimarents/Library/Logs/william-trene-reminder.err.log</string>
+  <string>/Users/remimarents/Library/Logs/trening-reminder.err.log</string>
 </dict>
 </plist>
